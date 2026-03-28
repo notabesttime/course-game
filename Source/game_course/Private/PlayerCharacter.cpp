@@ -96,6 +96,7 @@ void APlayerCharacter::ActivateMelee()
 	if (HoveredEnemy && AbilitySystemComponent)
 	{
 		AbilitySystemComponent->TryActivateAbility(MeleeAbilityHandle);
+		LastAttackTime = GetWorld()->GetTimeSeconds();
 		if (MeleeAttackSound)
 		{
 			UGameplayStatics::PlaySoundAtLocation(this, MeleeAttackSound, GetActorLocation());
@@ -108,6 +109,7 @@ void APlayerCharacter::ActivateRanged()
 	if (AbilitySystemComponent)
 	{
 		AbilitySystemComponent->TryActivateAbility(RangedAbilityHandle);
+		LastAttackTime = GetWorld()->GetTimeSeconds();
 		if (RangedAttackSound)
 		{
 			UGameplayStatics::PlaySoundAtLocation(this, RangedAttackSound, GetActorLocation());

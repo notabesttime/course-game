@@ -51,6 +51,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Sounds")
 	USoundBase* DeathSound;
 
+public:
+	float GetLastAttackTime() const { return LastAttackTime; }
+
 private:
 	void ActivateMelee();
 	void ActivateRanged();
@@ -58,6 +61,8 @@ private:
 
 	UFUNCTION()
 	void OnHealthChanged(float NewValue, float OldValue, float MaxValue);
+
+	float LastAttackTime = -10.f;
 
 	FGameplayAbilitySpecHandle MeleeAbilityHandle;
 	FGameplayAbilitySpecHandle RangedAbilityHandle;

@@ -23,6 +23,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Sounds")
 	USoundBase* DeathSound;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Drops")
+	TSubclassOf<class AHealingOrb> HealingOrbClass;
+
 public:
 	UFUNCTION(BlueprintNativeEvent, Category = "Highlight")
 	void StartHighlight();

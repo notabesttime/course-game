@@ -10,6 +10,7 @@
 #include "Materials/MaterialExpressionConstant4Vector.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "HealingOrb.h"
 
 ABaseEnemy::ABaseEnemy()
 {
@@ -73,6 +74,10 @@ void ABaseEnemy::OnHealthChanged(float NewValue, float OldValue, float MaxValue)
 		if (DeathSound)
 		{
 			UGameplayStatics::PlaySoundAtLocation(this, DeathSound, GetActorLocation(), 0.5f);
+		}
+		if (HealingOrbClass)
+		{
+			GetWorld()->SpawnActor<AHealingOrb>(HealingOrbClass, GetActorLocation(), FRotator::ZeroRotator);
 		}
 		Destroy();
 	}

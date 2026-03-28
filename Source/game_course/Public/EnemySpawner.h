@@ -18,6 +18,13 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 
+	// Effect and sound played when this spawner first appears
+	UPROPERTY(EditDefaultsOnly, Category = "Spawner|Appear")
+	class UParticleSystem* AppearEffect;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Spawner|Appear")
+	USoundBase* AppearSound;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Sounds")
 	USoundBase* SpawnSound;
 

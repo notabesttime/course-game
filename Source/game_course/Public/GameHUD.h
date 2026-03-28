@@ -17,9 +17,18 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "UI")
 	TSubclassOf<class UHealthBarWidget> HealthBarClass;
 
+	UPROPERTY(EditAnywhere, Category = "UI")
+	TSubclassOf<class UGameTimerWidget> TimerWidgetClass;
+
+public:
+	UGameTimerWidget* GetTimerWidget() const { return TimerWidget; }
+
 private:
 	void BindPlayerHealth();
 
 	UPROPERTY()
 	class UHealthBarWidget* HealthBarWidget;
+
+	UPROPERTY()
+	class UGameTimerWidget* TimerWidget;
 };

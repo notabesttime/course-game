@@ -4,6 +4,7 @@
 #include "MinionWarrior.h"
 #include "MinionMage.h"
 #include "Kismet/GameplayStatics.h"
+#include "Particles/ParticleSystem.h"
 
 AEnemySpawner::AEnemySpawner()
 {
@@ -22,6 +23,16 @@ void AEnemySpawner::BeginPlay()
 	Super::BeginPlay();
 
 	AddActorLocalRotation(FRotator(0.f, FMath::FRandRange(0.f, 360.f), 0.f));
+
+	if (AppearEffect)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(this, AppearEffect, GetActorLocation(), GetActorRotation());
+	}
+
+	if (AppearSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, AppearSound, GetActorLocation(), 0.5f);
+	}
 
 	GetWorldTimerManager().SetTimer(
 		SpawnTimerHandle,
