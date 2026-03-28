@@ -10,6 +10,7 @@ UENUM()
 enum class ECompanionAnimState : uint8
 {
 	Idle,
+	Walking,
 	Running,
 	Attacking
 };
@@ -42,6 +43,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Companion")
 	float AttackDamage = 15.f;
 
+	// Radius around the companion to hit multiple enemies per attack
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Companion")
+	float AttackRadius = 200.f;
+
 	// Seconds between attacks
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Companion")
 	float AttackCooldown = 1.0f;
@@ -51,10 +56,17 @@ protected:
 	UAnimSequence* IdleAnimation;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Companion|Animations")
-	UAnimSequence* RunAnimation;
+	UAnimSequence* WalkAnimation;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Companion|Animations")
-	UAnimSequence* AttackAnimation;
+	UAnimSequence* RunAnimation;
+
+	// Speed below which WalkAnimation plays instead of RunAnimation
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Companion|Animations")
+	float WalkSpeedThreshold = 200.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Companion|Animations")
+	TArray<UAnimSequence*> AttackAnimations;
 
 
 	// Called when the companion attacks — implement in Blueprint for VFX/animation

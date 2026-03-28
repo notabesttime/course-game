@@ -10,6 +10,7 @@
 #include "AIController.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/OverlapResult.h"
+#include "Engine/OverlapResult.h"
 #include "Animation/AnimSequence.h"
 #include "Animation/AnimInstance.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -62,8 +63,14 @@ void ABaseCompanion::UpdateBehavior()
 		return;
 	}
 
-	// Close to player — find and attack nearest enemy
-	if (!CurrentTarget || !IsValid(CurrentTarget))
+	// Validate current target every tick
+	if (CurrentTarget && !IsValid(CurrentTarget))
+	{
+		CurrentTarget = nullptr;
+	}
+
+	// Find new target if we don't have one
+	if (!CurrentTarget)
 	{
 		CurrentTarget = FindNearestEnemy();
 	}
@@ -131,10 +138,27 @@ void ABaseCompanion::UpdateAnimations()
 		return;
 	}
 
-	float Speed = GetCharacterMovement()->Velocity.Size();
+	FVector Velocity = GetCharacterMovement()->Velocity;
+	float Speed = Velocity.Size();
+
 	if (Speed > 50.f)
 	{
-		SetAnimState(ECompanionAnimState::Running);
+		// Face movement direction
+		FVector MoveDir = Velocity.GetSafeNormal();
+		MoveDir.Z = 0.f;
+		if (!MoveDir.IsNearlyZero())
+		{
+			SetActorRotation(MoveDir.Rotation());
+		}
+
+		if (Speed < WalkSpeedThreshold && WalkAnimation)
+		{
+			SetAnimState(ECompanionAnimState::Walking);
+		}
+		else
+		{
+			SetAnimState(ECompanionAnimState::Running);
+		}
 	}
 	else
 	{
@@ -159,6 +183,12 @@ void ABaseCompanion::SetAnimState(ECompanionAnimState NewState)
 			GetMesh()->PlayAnimation(IdleAnimation, true);
 		}
 		break;
+	case ECompanionAnimState::Walking:
+		if (WalkAnimation)
+		{
+			GetMesh()->PlayAnimation(WalkAnimation, true);
+		}
+		break;
 	case ECompanionAnimState::Running:
 		if (RunAnimation)
 		{
@@ -166,9 +196,13 @@ void ABaseCompanion::SetAnimState(ECompanionAnimState NewState)
 		}
 		break;
 	case ECompanionAnimState::Attacking:
-		if (AttackAnimation)
+		if (AttackAnimations.Num() > 0)
 		{
-			GetMesh()->PlayAnimation(AttackAnimation, false);
+			UAnimSequence* Anim = AttackAnimations[FMath::RandRange(0, AttackAnimations.Num() - 1)];
+			if (Anim)
+			{
+				GetMesh()->PlayAnimation(Anim, false);
+			}
 		}
 		break;
 	}
@@ -181,18 +215,47 @@ void ABaseCompanion::PerformAttack(ABaseEnemy* Target)
 		return;
 	}
 
-	if (IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(Target))
+	TArray<FOverlapResult> Overlaps;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	GetWorld()->OverlapMultiByObjectType(
+		Overlaps,
+		GetActorLocation(),
+		FQuat::Identity,
+		FCollisionObjectQueryParams(ECC_Pawn),
+		FCollisionShape::MakeSphere(AttackRadius),
+		Params
+	);
+
+	TSet<AActor*> DamagedActors;
+	for (const FOverlapResult& Overlap : Overlaps)
 	{
-		UAbilitySystemComponent* TargetASC = ASI->GetAbilitySystemComponent();
-		if (TargetASC)
+		ABaseEnemy* HitEnemy = Cast<ABaseEnemy>(Overlap.GetActor());
+		if (!HitEnemy || !IsValid(HitEnemy) || DamagedActors.Contains(HitEnemy))
 		{
-			const UBaseAttributeSet* AttrSet = TargetASC->GetSet<UBaseAttributeSet>();
-			if (AttrSet)
-			{
-				float NewHealth = FMath::Max(0.f, AttrSet->GetHealth() - AttackDamage);
-				TargetASC->SetNumericAttributeBase(UBaseAttributeSet::GetHealthAttribute(), NewHealth);
-			}
+			continue;
 		}
+
+		if (IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(HitEnemy))
+		{
+			UAbilitySystemComponent* TargetASC = ASI->GetAbilitySystemComponent();
+			if (!TargetASC) continue;
+
+			const UBaseAttributeSet* AttrSet = TargetASC->GetSet<UBaseAttributeSet>();
+			if (!AttrSet) continue;
+
+			float NewHealth = FMath::Max(0.f, AttrSet->GetHealth() - AttackDamage);
+			TargetASC->SetNumericAttributeBase(UBaseAttributeSet::GetHealthAttribute(), NewHealth);
+			DamagedActors.Add(HitEnemy);
+		}
+	}
+
+	FVector ToEnemy = Target->GetActorLocation() - GetActorLocation();
+	ToEnemy.Z = 0.f;
+	if (!ToEnemy.IsNearlyZero())
+	{
+		SetActorRotation(ToEnemy.Rotation());
 	}
 
 	OnCompanionAttack(Target);
