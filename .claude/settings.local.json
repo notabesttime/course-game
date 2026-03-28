@@ -7,7 +7,12 @@
       "Bash(find 'c:/Users/stani/Documents/Unreal Projects/course-game/Content' -name BP_Minion* -o -name BP_Enemy* -o -name BP_Warrior* -o -name BP_Mage*)",
       "Bash(xargs grep:*)",
       "Bash(find 'c:/Users/stani/Documents/Unreal Projects/course-game/Content' -type d -name *Magic* -o -type d -name *Mixed* -o -type d -name *VFX*)",
-      "WebFetch(domain:www.fab.com)"
+      "WebFetch(domain:www.fab.com)",
+      "Bash(python -c \"from PIL import Image, ImageDraw; print\\(''Pillow OK''\\)\")",
+      "Bash(py --version)",
+      "Bash(py -c \"from PIL import Image, ImageDraw, ImageDraw; print\\(''Pillow OK''\\)\")",
+      "Bash(py -m pip install Pillow --quiet)",
+      "Bash(py -c \"from PIL import Image; print\\(''OK''\\)\")"
     ]
   }
 }
