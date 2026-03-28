@@ -26,7 +26,7 @@ void AEnemySpawner::BeginPlay()
 
 	if (AppearEffect)
 	{
-		UGameplayStatics::SpawnEmitterAtLocation(this, AppearEffect, GetActorLocation(), GetActorRotation());
+		UGameplayStatics::SpawnEmitterAttached(AppearEffect, GetRootComponent());
 	}
 
 	if (AppearSound)

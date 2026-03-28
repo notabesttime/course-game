@@ -11,6 +11,9 @@ class GAME_COURSE_API USpawnerIndicatorWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
+public:
+	FVector2D GetIconSize() const;
+
 protected:
 	// Add an Image named "Icon" in the Blueprint subclass and assign your spawner icon texture
 	UPROPERTY(meta = (BindWidget))

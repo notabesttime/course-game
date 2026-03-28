@@ -34,7 +34,8 @@ protected:
 
 	// Padding from screen edges when clamped
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
-	float IndicatorEdgeMargin = 50.f;
+	float IndicatorEdgeMargin = 10.f;
+
 
 public:
 	UGameTimerWidget* GetTimerWidget() const { return TimerWidget; }
@@ -42,7 +43,10 @@ public:
 private:
 	void BindPlayerHealth();
 	void UpdateSpawnerIndicators();
-	FVector2D ClampToScreenEdge(FVector2D ScreenPos, FVector2D ViewportSize) const;
+	FVector2D ClampToScreenEdge(FVector2D Dir, FVector2D Center, float EffectiveMargin) const;
+
+	UFUNCTION()
+	void OnSpawnerDestroyed(AActor* DestroyedActor);
 
 	UPROPERTY()
 	class UHealthBarWidget* HealthBarWidget;

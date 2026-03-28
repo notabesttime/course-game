@@ -105,10 +105,8 @@ void AGameHUD::UpdateSpawnerIndicators()
 			if (Indicator)
 			{
 				Indicator->AddToViewport(2);
-				if (UCanvasPanelSlot* Slot = Cast<UCanvasPanelSlot>(Indicator->Slot))
-				{
-					Slot->SetAlignment(FVector2D(0.5f, 0.5f));
-				}
+				Indicator->SetAlignmentInViewport(FVector2D(0.5f, 0.5f));
+				Spawner->OnDestroyed.AddDynamic(this, &AGameHUD::OnSpawnerDestroyed);
 				SpawnerIndicators.Add(Spawner, Indicator);
 			}
 		}
@@ -124,26 +122,33 @@ void AGameHUD::UpdateSpawnerIndicators()
 		FVector2D ViewportSize(ViewW, ViewH);
 		FVector2D Center = ViewportSize * 0.5f;
 
-		// Project spawner base location (used for rotation target)
-		FVector2D SpawnerScreenPos;
-		PC->ProjectWorldLocationToScreen(Spawner->GetActorLocation(), SpawnerScreenPos);
-
 		// Project offset location (used for on-screen icon placement)
+		FVector SpawnerOffsetLoc = Spawner->GetActorLocation() + FVector(0.f, 0.f, IndicatorHeightOffset);
 		FVector2D OffsetScreenPos;
-		PC->ProjectWorldLocationToScreen(
-			Spawner->GetActorLocation() + FVector(0.f, 0.f, IndicatorHeightOffset),
-			OffsetScreenPos);
+		PC->ProjectWorldLocationToScreen(SpawnerOffsetLoc, OffsetScreenPos);
 
-		// Detect if behind camera
+		// Camera axes for stable off-screen direction
 		FVector CamLoc;
 		FRotator CamRot;
 		PC->GetPlayerViewPoint(CamLoc, CamRot);
-		FVector ToSpawner = (Spawner->GetActorLocation() - CamLoc).GetSafeNormal();
-		bool bBehind = FVector::DotProduct(CamRot.Vector(), ToSpawner) < 0.f;
+		FMatrix CamMatrix = FRotationMatrix(CamRot);
+		FVector CamForward = CamMatrix.GetScaledAxis(EAxis::X);
+		FVector CamRight   = CamMatrix.GetScaledAxis(EAxis::Y);
+		FVector CamUp      = CamMatrix.GetScaledAxis(EAxis::Z);
 
+		FVector ToTarget = (SpawnerOffsetLoc - CamLoc).GetSafeNormal();
+		bool bBehind = FVector::DotProduct(CamForward, ToTarget) < 0.f;
+
+		FVector2D IconSize = Indicator->GetIconSize();
+		const float HalfIcon = FMath::Max(IconSize.X, IconSize.Y) * 0.5f;
+		const float EffectiveMargin = IndicatorEdgeMargin + HalfIcon;
+
+		// Use only the icon half-size as the on-screen threshold so the icon
+		// follows the spawner as long as it fits within the viewport.
+		// EffectiveMargin (which adds the edge padding) is only for clamped positions.
 		bool bOnScreen = !bBehind
-			&& OffsetScreenPos.X >= IndicatorEdgeMargin && OffsetScreenPos.X <= ViewW - IndicatorEdgeMargin
-			&& OffsetScreenPos.Y >= IndicatorEdgeMargin && OffsetScreenPos.Y <= ViewH - IndicatorEdgeMargin;
+			&& OffsetScreenPos.X >= HalfIcon && OffsetScreenPos.X <= ViewW - HalfIcon
+			&& OffsetScreenPos.Y >= HalfIcon && OffsetScreenPos.Y <= ViewH - HalfIcon;
 
 		FVector2D FinalPos;
 
@@ -153,30 +158,44 @@ void AGameHUD::UpdateSpawnerIndicators()
 		}
 		else
 		{
-			if (bBehind)
-			{
-				OffsetScreenPos = 2.f * Center - OffsetScreenPos;
-			}
-			FinalPos = ClampToScreenEdge(OffsetScreenPos, ViewportSize);
+			// Use view-space direction — continuous across the behind-camera boundary,
+			// avoids the jump caused by flipping the projected position.
+			float DirX = FVector::DotProduct(ToTarget, CamRight);
+			float DirY = -FVector::DotProduct(ToTarget, CamUp); // screen Y is inverted
+			// No negation for behind-camera: view-space direction is continuous across that boundary.
+			// The indicator correctly points toward the spawner even when it's behind the camera.
+			FVector2D Dir(DirX, DirY);
+			if (Dir.IsNearlyZero()) Dir = FVector2D(1.f, 0.f);
+			Dir.Normalize();
+			FinalPos = ClampToScreenEdge(Dir, Center, EffectiveMargin);
 		}
 
 		Indicator->SetPositionInViewport(FinalPos + FVector2D(IndicatorHorizontalOffset, 0.f));
 	}
 }
 
-FVector2D AGameHUD::ClampToScreenEdge(FVector2D ScreenPos, FVector2D ViewportSize) const
+void AGameHUD::OnSpawnerDestroyed(AActor* DestroyedActor)
 {
-	FVector2D Center = ViewportSize * 0.5f;
-	FVector2D Dir = ScreenPos - Center;
-
-	if (Dir.IsNearlyZero())
+	AEnemySpawner* Spawner = Cast<AEnemySpawner>(DestroyedActor);
+	if (!Spawner)
 	{
-		Dir = FVector2D(1.f, 0.f);
+		return;
 	}
-	Dir.Normalize();
 
-	float HalfW = Center.X - IndicatorEdgeMargin;
-	float HalfH = Center.Y - IndicatorEdgeMargin;
+	if (USpawnerIndicatorWidget** Found = SpawnerIndicators.Find(Spawner))
+	{
+		if (*Found)
+		{
+			(*Found)->RemoveFromParent();
+		}
+		SpawnerIndicators.Remove(Spawner);
+	}
+}
+
+FVector2D AGameHUD::ClampToScreenEdge(FVector2D Dir, FVector2D Center, float EffectiveMargin) const
+{
+	float HalfW = Center.X - EffectiveMargin;
+	float HalfH = Center.Y - EffectiveMargin;
 
 	float ScaleX = FMath::Abs(Dir.X) > KINDA_SMALL_NUMBER ? HalfW / FMath::Abs(Dir.X) : FLT_MAX;
 	float ScaleY = FMath::Abs(Dir.Y) > KINDA_SMALL_NUMBER ? HalfH / FMath::Abs(Dir.Y) : FLT_MAX;
