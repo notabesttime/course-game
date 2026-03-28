@@ -40,6 +40,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mage|Animations")
 	TArray<UAnimSequence*> CastAnimations;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mage|Animations")
+	TArray<UAnimSequence*> HealCastAnimations;
+
 	// Projectile Blueprint to spawn on attack
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mage|Combat")
 	TSubclassOf<class AMinionMageProjectile> ProjectileClass;
@@ -52,12 +55,31 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mage|Combat")
 	float AttackCooldown = 2.0f;
 
+	// Heal amount per cast
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mage|Healing")
+	float HealAmount = 40.f;
+
+	// Radius to find ally enemies to heal
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mage|Healing")
+	float HealRange = 600.f;
+
+	// Seconds between heals
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mage|Healing")
+	float HealCooldown = 1.f;
+
+	// Implement in Blueprint — spawn cast VFX on the mage and a heal VFX on the target
+	UFUNCTION(BlueprintImplementableEvent, Category = "Mage|Healing")
+	void OnHealCast(AActor* HealedTarget);
+
 private:
 	void UpdateAnimations();
 	void SetAnimState(EMageAnimState NewState);
 	void TryAttackPlayer();
+	void TryHealAlly();
 
 	EMageAnimState CurrentAnimState = EMageAnimState::Idle;
 	bool bAttackOnCooldown = false;
 	FTimerHandle AttackCooldownTimer;
+	bool bHealOnCooldown = false;
+	FTimerHandle HealCooldownTimer;
 };

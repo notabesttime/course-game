@@ -21,6 +21,8 @@ void AEnemySpawner::BeginPlay()
 {
 	Super::BeginPlay();
 
+	AddActorLocalRotation(FRotator(0.f, FMath::FRandRange(0.f, 360.f), 0.f));
+
 	GetWorldTimerManager().SetTimer(
 		SpawnTimerHandle,
 		this,

@@ -4,9 +4,14 @@
 #include "MinionMageAIController.h"
 #include "MinionMageProjectile.h"
 #include "PlayerCharacter.h"
+#include "BaseEnemy.h"
+#include "BaseAttributeSet.h"
+#include "AbilitySystemComponent.h"
+#include "AbilitySystemInterface.h"
 #include "Animation/AnimSequence.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Engine/OverlapResult.h"
 
 AMinionMage::AMinionMage()
 {
@@ -34,6 +39,15 @@ void AMinionMage::BeginPlay()
 		GetMesh()->SetAnimationMode(EAnimationMode::AnimationSingleNode);
 		SetAnimState(EMageAnimState::Idle);
 	}
+
+	// Stagger first shot so mages spawned together don't all fire at once
+	bAttackOnCooldown = true;
+	GetWorldTimerManager().SetTimer(
+		AttackCooldownTimer,
+		[this]() { bAttackOnCooldown = false; },
+		FMath::FRandRange(0.f, AttackCooldown),
+		false
+	);
 }
 
 void AMinionMage::Tick(float DeltaTime)
@@ -41,6 +55,7 @@ void AMinionMage::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	UpdateAnimations();
 	TryAttackPlayer();
+	TryHealAlly();
 }
 
 void AMinionMage::UpdateAnimations()
@@ -130,6 +145,7 @@ void AMinionMage::TryAttackPlayer()
 	SetAnimState(EMageAnimState::Casting);
 
 	bAttackOnCooldown = true;
+	float Jitter = FMath::FRandRange(0.f, AttackCooldown * 0.5f);
 	GetWorldTimerManager().SetTimer(
 		AttackCooldownTimer,
 		[this]()
@@ -137,7 +153,98 @@ void AMinionMage::TryAttackPlayer()
 			bAttackOnCooldown = false;
 			CurrentAnimState = EMageAnimState::Idle;
 		},
-		AttackCooldown,
+		AttackCooldown + Jitter,
+		false
+	);
+}
+
+void AMinionMage::TryHealAlly()
+{
+	if (bHealOnCooldown)
+	{
+		return;
+	}
+
+	TArray<FOverlapResult> Overlaps;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	GetWorld()->OverlapMultiByObjectType(
+		Overlaps,
+		GetActorLocation(),
+		FQuat::Identity,
+		FCollisionObjectQueryParams(ECC_Pawn),
+		FCollisionShape::MakeSphere(HealRange),
+		Params
+	);
+
+	// Find the most damaged ally (lowest health %) that isn't full
+	ABaseEnemy* BestTarget = nullptr;
+	float LowestHealthPct = 1.0f;
+
+	for (const FOverlapResult& Overlap : Overlaps)
+	{
+		ABaseEnemy* Ally = Cast<ABaseEnemy>(Overlap.GetActor());
+		if (!Ally || !IsValid(Ally))
+		{
+			continue;
+		}
+
+		if (IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(Ally))
+		{
+			UAbilitySystemComponent* AllyASC = ASI->GetAbilitySystemComponent();
+			if (!AllyASC) continue;
+
+			const UBaseAttributeSet* AttrSet = AllyASC->GetSet<UBaseAttributeSet>();
+			if (!AttrSet || AttrSet->GetMaxHealth() <= 0.f) continue;
+
+			float HealthPct = AttrSet->GetHealth() / AttrSet->GetMaxHealth();
+			if (HealthPct < LowestHealthPct)
+			{
+				LowestHealthPct = HealthPct;
+				BestTarget = Ally;
+			}
+		}
+	}
+
+	if (!BestTarget)
+	{
+		return;
+	}
+
+	// Apply heal
+	if (IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(BestTarget))
+	{
+		UAbilitySystemComponent* AllyASC = ASI->GetAbilitySystemComponent();
+		const UBaseAttributeSet* AttrSet = AllyASC->GetSet<UBaseAttributeSet>();
+		float NewHealth = FMath::Min(AttrSet->GetMaxHealth(), AttrSet->GetHealth() + HealAmount);
+		AllyASC->SetNumericAttributeBase(UBaseAttributeSet::GetHealthAttribute(), NewHealth);
+	}
+
+	CurrentAnimState = EMageAnimState::Casting;
+	if (HealCastAnimations.Num() > 0)
+	{
+		UAnimSequence* Anim = HealCastAnimations[FMath::RandRange(0, HealCastAnimations.Num() - 1)];
+		if (Anim)
+		{
+			GetMesh()->PlayAnimation(Anim, false);
+		}
+	}
+	OnHealCast(BestTarget);
+
+	bHealOnCooldown = true;
+	float Jitter = FMath::FRandRange(0.f, HealCooldown * 0.5f);
+	GetWorldTimerManager().SetTimer(
+		HealCooldownTimer,
+		[this]()
+		{
+			bHealOnCooldown = false;
+			if (CurrentAnimState == EMageAnimState::Casting)
+			{
+				CurrentAnimState = EMageAnimState::Idle;
+			}
+		},
+		HealCooldown + Jitter,
 		false
 	);
 }
