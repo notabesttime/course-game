@@ -32,8 +32,12 @@ void AMinionWarrior::BeginPlay()
 	}
 
 	GetMesh()->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
-	GetMesh()->SetAnimationMode(EAnimationMode::AnimationSingleNode);
-	SetAnimState(EWarriorAnimState::Idle);
+
+	if (GetMesh()->GetSkeletalMeshAsset())
+	{
+		GetMesh()->SetAnimationMode(EAnimationMode::AnimationSingleNode);
+		SetAnimState(EWarriorAnimState::Idle);
+	}
 }
 
 void AMinionWarrior::Tick(float DeltaTime)

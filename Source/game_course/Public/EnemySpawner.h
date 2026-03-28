@@ -16,6 +16,11 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override;
+
+	// Degrees per second to rotate around Z axis
+	UPROPERTY(EditDefaultsOnly, Category = "Spawner")
+	float SpinSpeed = 45.f;
 
 	// Blueprint subclass of MinionWarrior to spawn
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawner")

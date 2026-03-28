@@ -65,6 +65,10 @@ void ABaseEnemy::OnHealthChanged(float NewValue, float OldValue, float MaxValue)
 {
 	if (NewValue <= 0.0f)
 	{
+		if (HealthBarWidgetComponent)
+		{
+			HealthBarWidgetComponent->SetVisibility(false);
+		}
 		Destroy();
 	}
 }
