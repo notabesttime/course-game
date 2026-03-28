@@ -5,6 +5,16 @@
 #include "Components/ProgressBar.h"
 #include "HealthComponent.h"
 
+void UHealthBarWidget::NativeConstruct()
+{
+	Super::NativeConstruct();
+
+	if (HealthComponent)
+	{
+		UpdateHealthBar(HealthComponent->GetHealth(), 0.0f, HealthComponent->GetMaxHealth());
+	}
+}
+
 void UHealthBarWidget::SetHealthComponent(UHealthComponent* InHealthComponent)
 {
 	HealthComponent = InHealthComponent;

@@ -18,6 +18,8 @@ protected:
 	TSubclassOf<class UHealthBarWidget> HealthBarClass;
 
 private:
+	void BindPlayerHealth();
+
 	UPROPERTY()
 	class UHealthBarWidget* HealthBarWidget;
 };

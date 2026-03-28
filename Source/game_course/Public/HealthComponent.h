@@ -14,13 +14,16 @@ class GAME_COURSE_API UHealthComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
-public:	
+public:
 	UHealthComponent();
+
+	// Call this after InitAbilityActorInfo to register the attribute change delegate
+	void BindToASC(UAbilitySystemComponent* InASC);
 
 protected:
 	virtual void BeginPlay() override;
 
-public:	
+public:
 	UPROPERTY(BlueprintAssignable, Category = "Health")
 	FOnHealthChanged OnHealthChanged;
 

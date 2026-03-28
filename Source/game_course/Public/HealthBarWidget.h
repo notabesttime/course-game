@@ -16,6 +16,7 @@ public:
 	void SetHealthComponent(class UHealthComponent* InHealthComponent);
 
 protected:
+	virtual void NativeConstruct() override;
 	UPROPERTY(meta = (BindWidget))
 	class UProgressBar* HealthBar;
 

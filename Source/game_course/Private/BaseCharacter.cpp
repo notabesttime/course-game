@@ -28,12 +28,18 @@ void ABaseCharacter::BeginPlay()
 	if (AbilitySystemComponent)
 	{
 		AbilitySystemComponent->InitAbilityActorInfo(this, this);
-		
+
 		// Set default values (e.g. Health = 100)
 		if (AttributeSet)
 		{
 			AttributeSet->InitMaxHealth(100.0f);
-			AttributeSet->InitHealth(75.0f);
+			AttributeSet->InitHealth(100.0f);
+		}
+
+		// Bind after InitAbilityActorInfo so GetSet<> is reliable
+		if (HealthComponent)
+		{
+			HealthComponent->BindToASC(AbilitySystemComponent);
 		}
 	}
 }

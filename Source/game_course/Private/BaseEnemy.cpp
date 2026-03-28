@@ -90,11 +90,16 @@ void ABaseEnemy::BeginPlay()
 		HealthComponent->OnHealthChanged.AddDynamic(this, &ABaseEnemy::OnHealthChanged);
 	}
 
-	if (HealthBarWidgetComponent && HealthBarWidgetClass)
+	if (HealthBarWidgetComponent)
 	{
-		HealthBarWidgetComponent->SetWidgetClass(HealthBarWidgetClass);
-		HealthBarWidgetComponent->InitWidget();
+		// If a class is explicitly set on this property, override the component's class
+		if (HealthBarWidgetClass)
+		{
+			HealthBarWidgetComponent->SetWidgetClass(HealthBarWidgetClass);
+			HealthBarWidgetComponent->InitWidget();
+		}
 
+		// Always bind health component to whatever widget is on the component
 		if (UHealthBarWidget* HealthWidget = Cast<UHealthBarWidget>(HealthBarWidgetComponent->GetWidget()))
 		{
 			HealthWidget->SetHealthComponent(HealthComponent);

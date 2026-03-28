@@ -41,7 +41,7 @@ void AMinionWarriorAIController::UpdateMovement()
 		return;
 	}
 
-	EPathFollowingRequestResult::Type Result = MoveToActor(PlayerPawn, MeleeRange);
+	EPathFollowingRequestResult::Type Result = MoveToActor(PlayerPawn, 20.f);
 	if (Result == EPathFollowingRequestResult::Failed)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("MinionWarriorAIController: MoveToActor FAILED — check NavMesh covers the warrior's location"));

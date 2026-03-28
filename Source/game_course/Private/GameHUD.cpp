@@ -17,15 +17,26 @@ void AGameHUD::BeginPlay()
 		if (HealthBarWidget)
 		{
 			HealthBarWidget->AddToViewport();
+		}
+	}
 
-			APawn* PlayerPawn = GetOwningPawn();
-			if (PlayerPawn)
-			{
-				if (UHealthComponent* HealthComp = PlayerPawn->FindComponentByClass<UHealthComponent>())
-				{
-					HealthBarWidget->SetHealthComponent(HealthComp);
-				}
-			}
+	// Defer one tick so the player character's BeginPlay (and BindToASC) completes first
+	GetWorldTimerManager().SetTimerForNextTick(this, &AGameHUD::BindPlayerHealth);
+}
+
+void AGameHUD::BindPlayerHealth()
+{
+	if (!HealthBarWidget)
+	{
+		return;
+	}
+
+	APawn* PlayerPawn = GetOwningPawn();
+	if (PlayerPawn)
+	{
+		if (UHealthComponent* HealthComp = PlayerPawn->FindComponentByClass<UHealthComponent>())
+		{
+			HealthBarWidget->SetHealthComponent(HealthComp);
 		}
 	}
 }

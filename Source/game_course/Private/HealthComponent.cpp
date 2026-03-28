@@ -15,19 +15,20 @@ UHealthComponent::UHealthComponent()
 void UHealthComponent::BeginPlay()
 {
 	Super::BeginPlay();
+}
 
-	AActor* Owner = GetOwner();
-	if (IAbilitySystemInterface* ASInterface = Cast<IAbilitySystemInterface>(Owner))
+void UHealthComponent::BindToASC(UAbilitySystemComponent* InASC)
+{
+	ASC = InASC;
+	if (!ASC)
 	{
-		ASC = ASInterface->GetAbilitySystemComponent();
-		if (ASC)
-		{
-			AttributeSet = ASC->GetSet<UBaseAttributeSet>();
-			if (AttributeSet)
-			{
-				ASC->GetGameplayAttributeValueChangeDelegate(AttributeSet->GetHealthAttribute()).AddUObject(this, &UHealthComponent::HandleHealthChange);
-			}
-		}
+		return;
+	}
+
+	AttributeSet = ASC->GetSet<UBaseAttributeSet>();
+	if (AttributeSet)
+	{
+		ASC->GetGameplayAttributeValueChangeDelegate(AttributeSet->GetHealthAttribute()).AddUObject(this, &UHealthComponent::HandleHealthChange);
 	}
 }
 
