@@ -40,6 +40,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Warrior|Animations")
 	TArray<UAnimSequence*> AttackAnimations;
 
+	// Sounds
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Warrior|Sounds")
+	USoundBase* AttackSound;
+
 	// Damage dealt to player per attack
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Warrior|Combat")
 	float AttackDamage = 5.f;

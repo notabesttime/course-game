@@ -18,6 +18,9 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Sounds")
+	USoundBase* SpawnSound;
+
 	// Degrees per second to rotate around Z axis
 	UPROPERTY(EditDefaultsOnly, Category = "Spawner")
 	float SpinSpeed = 45.f;

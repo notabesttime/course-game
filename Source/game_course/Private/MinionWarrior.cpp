@@ -147,6 +147,11 @@ void AMinionWarrior::TryAttackPlayer()
 
 	SetAnimState(EWarriorAnimState::Attacking);
 
+	if (AttackSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, AttackSound, GetActorLocation(), 0.5f);
+	}
+
 	bAttackOnCooldown = true;
 	GetWorldTimerManager().SetTimer(
 		AttackCooldownTimer,

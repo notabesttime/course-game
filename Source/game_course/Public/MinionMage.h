@@ -43,6 +43,13 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mage|Animations")
 	TArray<UAnimSequence*> HealCastAnimations;
 
+	// Sounds
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mage|Sounds")
+	USoundBase* AttackSound;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mage|Sounds")
+	USoundBase* HealSound;
+
 	// Projectile Blueprint to spawn on attack
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mage|Combat")
 	TSubclassOf<class AMinionMageProjectile> ProjectileClass;

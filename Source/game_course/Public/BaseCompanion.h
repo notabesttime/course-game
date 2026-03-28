@@ -69,9 +69,18 @@ protected:
 	TArray<UAnimSequence*> AttackAnimations;
 
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Companion|Sounds")
+	USoundBase* AttackSound;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Companion|Sounds")
+	USoundBase* DeathSound;
+
 	// Called when the companion attacks — implement in Blueprint for VFX/animation
 	UFUNCTION(BlueprintImplementableEvent, Category = "Companion")
 	void OnCompanionAttack(AActor* Target);
+
+	UFUNCTION()
+	void OnHealthChanged(float NewValue, float OldValue, float MaxValue);
 
 private:
 	void UpdateBehavior();

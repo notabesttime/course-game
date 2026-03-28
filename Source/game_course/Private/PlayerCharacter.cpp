@@ -9,6 +9,8 @@
 #include "EnhancedInputSubsystems.h"
 #include "GameFramework/PlayerController.h"
 #include "Engine/EngineTypes.h"
+#include "HealthComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 APlayerCharacter::APlayerCharacter()
 {
@@ -29,6 +31,11 @@ void APlayerCharacter::BeginPlay()
 		{
 			RangedAbilityHandle = AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(RangedAbilityClass, 1));
 		}
+	}
+
+	if (HealthComponent)
+	{
+		HealthComponent->OnHealthChanged.AddDynamic(this, &APlayerCharacter::OnHealthChanged);
 	}
 }
 
@@ -89,6 +96,10 @@ void APlayerCharacter::ActivateMelee()
 	if (HoveredEnemy && AbilitySystemComponent)
 	{
 		AbilitySystemComponent->TryActivateAbility(MeleeAbilityHandle);
+		if (MeleeAttackSound)
+		{
+			UGameplayStatics::PlaySoundAtLocation(this, MeleeAttackSound, GetActorLocation());
+		}
 	}
 }
 
@@ -97,5 +108,17 @@ void APlayerCharacter::ActivateRanged()
 	if (AbilitySystemComponent)
 	{
 		AbilitySystemComponent->TryActivateAbility(RangedAbilityHandle);
+		if (RangedAttackSound)
+		{
+			UGameplayStatics::PlaySoundAtLocation(this, RangedAttackSound, GetActorLocation());
+		}
+	}
+}
+
+void APlayerCharacter::OnHealthChanged(float NewValue, float OldValue, float MaxValue)
+{
+	if (NewValue <= 0.0f && DeathSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, DeathSound, GetActorLocation());
 	}
 }

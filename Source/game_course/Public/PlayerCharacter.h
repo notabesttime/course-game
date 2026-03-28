@@ -42,10 +42,22 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
 	TSubclassOf<class UPlayerRangedAbility> RangedAbilityClass;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Sounds")
+	USoundBase* MeleeAttackSound;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Sounds")
+	USoundBase* RangedAttackSound;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Sounds")
+	USoundBase* DeathSound;
+
 private:
 	void ActivateMelee();
 	void ActivateRanged();
 	void UpdateHoveredEnemy();
+
+	UFUNCTION()
+	void OnHealthChanged(float NewValue, float OldValue, float MaxValue);
 
 	FGameplayAbilitySpecHandle MeleeAbilityHandle;
 	FGameplayAbilitySpecHandle RangedAbilityHandle;

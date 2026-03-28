@@ -144,6 +144,11 @@ void AMinionMage::TryAttackPlayer()
 
 	SetAnimState(EMageAnimState::Casting);
 
+	if (AttackSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, AttackSound, GetActorLocation(), 0.5f);
+	}
+
 	bAttackOnCooldown = true;
 	float Jitter = FMath::FRandRange(0.f, AttackCooldown * 0.5f);
 	GetWorldTimerManager().SetTimer(
@@ -229,6 +234,10 @@ void AMinionMage::TryHealAlly()
 		{
 			GetMesh()->PlayAnimation(Anim, false);
 		}
+	}
+	if (HealSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, HealSound, GetActorLocation(), 0.5f);
 	}
 	OnHealCast(BestTarget);
 

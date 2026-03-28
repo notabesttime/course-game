@@ -9,6 +9,7 @@
 #include "Materials/Material.h"
 #include "Materials/MaterialExpressionConstant4Vector.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 ABaseEnemy::ABaseEnemy()
 {
@@ -68,6 +69,10 @@ void ABaseEnemy::OnHealthChanged(float NewValue, float OldValue, float MaxValue)
 		if (HealthBarWidgetComponent)
 		{
 			HealthBarWidgetComponent->SetVisibility(false);
+		}
+		if (DeathSound)
+		{
+			UGameplayStatics::PlaySoundAtLocation(this, DeathSound, GetActorLocation(), 0.5f);
 		}
 		Destroy();
 	}

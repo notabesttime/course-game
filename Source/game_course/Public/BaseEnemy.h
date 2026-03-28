@@ -20,6 +20,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<class UHealthBarWidget> HealthBarWidgetClass;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Sounds")
+	USoundBase* DeathSound;
+
 public:
 	UFUNCTION(BlueprintNativeEvent, Category = "Highlight")
 	void StartHighlight();

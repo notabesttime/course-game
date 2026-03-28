@@ -54,12 +54,15 @@ void AEnemySpawner::TrySpawn()
 	// Spawn transform: same location as spawner, yaw only (no pitch/roll)
 	FTransform SpawnTransform(FRotator(0.f, GetActorRotation().Yaw, 0.f), GetActorLocation());
 
+	bool bSpawned = false;
+
 	// Try to spawn a warrior if under the limit
 	if (WarriorClass && Warriors < MaxWarriors)
 	{
 		FActorSpawnParameters Params;
 		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 		GetWorld()->SpawnActor<AMinionWarrior>(WarriorClass, SpawnTransform, Params);
+		bSpawned = true;
 	}
 
 	// Try to spawn a mage if under the limit and ratio allows (1 mage per 2 warriors)
@@ -68,5 +71,11 @@ void AEnemySpawner::TrySpawn()
 		FActorSpawnParameters Params;
 		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 		GetWorld()->SpawnActor<AMinionMage>(MageClass, SpawnTransform, Params);
+		bSpawned = true;
+	}
+
+	if (bSpawned && SpawnSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, SpawnSound, GetActorLocation(), 0.5f);
 	}
 }

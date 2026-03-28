@@ -14,6 +14,7 @@
 #include "Animation/AnimSequence.h"
 #include "Animation/AnimInstance.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "HealthComponent.h"
 
 ABaseCompanion::ABaseCompanion()
 {
@@ -27,6 +28,11 @@ void ABaseCompanion::BeginPlay()
 	Super::BeginPlay();
 
 	PlayerOwner = Cast<APlayerCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
+
+	if (HealthComponent)
+	{
+		HealthComponent->OnHealthChanged.AddDynamic(this, &ABaseCompanion::OnHealthChanged);
+	}
 
 	GetMesh()->SetAnimationMode(EAnimationMode::AnimationSingleNode);
 
@@ -258,6 +264,10 @@ void ABaseCompanion::PerformAttack(ABaseEnemy* Target)
 		SetActorRotation(ToEnemy.Rotation());
 	}
 
+	if (AttackSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, AttackSound, GetActorLocation(), 0.5f);
+	}
 	OnCompanionAttack(Target);
 
 	SetAnimState(ECompanionAnimState::Attacking);
@@ -273,4 +283,16 @@ void ABaseCompanion::PerformAttack(ABaseEnemy* Target)
 		AttackCooldown,
 		false
 	);
+}
+
+void ABaseCompanion::OnHealthChanged(float NewValue, float OldValue, float MaxValue)
+{
+	if (NewValue <= 0.0f)
+	{
+		if (DeathSound)
+		{
+			UGameplayStatics::PlaySoundAtLocation(this, DeathSound, GetActorLocation(), 0.5f);
+		}
+		Destroy();
+	}
 }
