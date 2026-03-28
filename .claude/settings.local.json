@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find 'c:/Users/stani/Documents/Unreal Projects/course-game/Content' -type d -name *Gideon* -o -type d -name *Paragon*)",
+      "Bash(find 'c:/Users/stani/Documents/Unreal Projects/course-game/Content' -name BP_Player* -o -name IA_* -o -name IMC_*)",
+      "Bash(find 'c:/Users/stani/Documents/Unreal Projects/course-game/Content' -name BP_TopDown* -o -name BP_Player*)",
+      "Bash(find 'c:/Users/stani/Documents/Unreal Projects/course-game/Content' -name BP_Minion* -o -name BP_Enemy* -o -name BP_Warrior* -o -name BP_Mage*)",
+      "Bash(xargs grep:*)",
+      "Bash(find 'c:/Users/stani/Documents/Unreal Projects/course-game/Content' -type d -name *Magic* -o -type d -name *Mixed* -o -type d -name *VFX*)",
+      "WebFetch(domain:www.fab.com)"
+    ]
+  }
+}
