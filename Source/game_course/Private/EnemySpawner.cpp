@@ -17,6 +17,14 @@ int32 AEnemySpawner::LiveWarriorCount = 0;
 int32 AEnemySpawner::LiveMageCount    = 0;
 int32 AEnemySpawner::LiveBruteCount   = 0;
 
+void AEnemySpawner::ResetCounters()
+{
+	TotalSpawnCount  = 0;
+	LiveWarriorCount = 0;
+	LiveMageCount    = 0;
+	LiveBruteCount   = 0;
+}
+
 AEnemySpawner::AEnemySpawner()
 {
 	PrimaryActorTick.bCanEverTick = true;

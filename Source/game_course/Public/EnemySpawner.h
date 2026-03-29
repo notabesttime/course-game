@@ -94,6 +94,9 @@ public:
 	static int32 LiveMageCount;
 	static int32 LiveBruteCount;
 
+	// Reset all static counters — must be called at session start (they survive PIE/OpenLevel)
+	static void ResetCounters();
+
 private:
 	void TrySpawn();
 

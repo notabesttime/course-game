@@ -16,6 +16,9 @@ void ASpawnerManager::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// Static counters persist across PIE restarts and OpenLevel — reset them
+	AEnemySpawner::ResetCounters();
+
 	if (SpawnerClass)
 	{
 		GetWorldTimerManager().SetTimer(
