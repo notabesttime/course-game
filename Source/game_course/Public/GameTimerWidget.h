@@ -15,6 +15,9 @@ public:
 	// Called by SpawnerManager on each new wave
 	void StartFlash(int32 WaveNumber);
 
+	void StopTimer() { bStopped = true; }
+	float GetElapsedTime() const { return ElapsedTime; }
+
 protected:
 	virtual void NativeConstruct() override;
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
@@ -38,6 +41,7 @@ protected:
 private:
 	float ElapsedTime = 0.f;
 	bool bFlashing = false;
+	bool bStopped = false;
 	float FlashTimeRemaining = 0.f;
 
 	UPROPERTY()

@@ -41,6 +41,12 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	class UInputAction* MoveInputAction;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	class UInputAction* DebugDieInputAction;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	class UInputAction* RestartInputAction;
+
 	// Set these in BP_PlayerCharacter Class Defaults to the Blueprint ability subclasses
 	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
 	TSubclassOf<class UPlayerMeleeAbility> MeleeAbilityClass;
@@ -65,6 +71,8 @@ private:
 	void ActivateRanged();
 	void Move(const struct FInputActionValue& Value);
 	void UpdateHoveredEnemy();
+	void DebugDie();
+	void QuickRestart();
 
 	UFUNCTION()
 	void OnHealthChanged(float NewValue, float OldValue, float MaxValue);

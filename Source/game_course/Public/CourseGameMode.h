@@ -11,10 +11,21 @@ class GAME_COURSE_API ACourseGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
 
+public:
+	void OnPlayerDied();
+	void SaveScoreOnly();
+
 protected:
 	virtual void BeginPlay() override;
 
-	// Set this to BP_SpawnerManager (or a subclass) in the GameMode's Class Defaults
 	UPROPERTY(EditDefaultsOnly, Category = "Spawning")
 	TSubclassOf<class ASpawnerManager> SpawnerManagerClass;
+
+private:
+	UPROPERTY()
+	class ASpawnerManager* SpawnerManager = nullptr;
+
+	bool bGameOver = false;
+
+	TArray<float> AddAndSaveScore(float SurvivalTime);
 };

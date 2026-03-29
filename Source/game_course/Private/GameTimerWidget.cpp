@@ -20,7 +20,7 @@ void UGameTimerWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
 
-	ElapsedTime += InDeltaTime;
+	if (!bStopped) ElapsedTime += InDeltaTime;
 
 	if (ActiveAnnouncement && ActiveAnnouncement->IsAnimating())
 	{

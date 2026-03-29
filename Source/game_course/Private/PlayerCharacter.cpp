@@ -10,12 +10,14 @@
 #include "InputActionValue.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/PlayerController.h"
+#include "Framework/Application/SlateApplication.h"
 #include "Engine/EngineTypes.h"
 #include "HealthComponent.h"
 #include "ManaComponent.h"
 #include "CameraOcclusionComponent.h"
 #include "BaseAttributeSet.h"
 #include "Kismet/GameplayStatics.h"
+#include "CourseGameMode.h"
 
 APlayerCharacter::APlayerCharacter()
 {
@@ -109,6 +111,14 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		{
 			EIC->BindAction(MoveInputAction, ETriggerEvent::Triggered, this, &APlayerCharacter::Move);
 		}
+		if (DebugDieInputAction)
+		{
+			EIC->BindAction(DebugDieInputAction, ETriggerEvent::Started, this, &APlayerCharacter::DebugDie);
+		}
+		if (RestartInputAction)
+		{
+			EIC->BindAction(RestartInputAction, ETriggerEvent::Started, this, &APlayerCharacter::QuickRestart);
+		}
 	}
 }
 
@@ -167,10 +177,57 @@ void APlayerCharacter::ActivateRanged()
 	}
 }
 
+void APlayerCharacter::DebugDie()
+{
+	if (AttributeSet)
+	{
+		// Force health to 0, which triggers OnHealthChanged → full death flow
+		if (AbilitySystemComponent)
+		{
+			AbilitySystemComponent->SetNumericAttributeBase(
+				UBaseAttributeSet::GetHealthAttribute(), 0.f);
+		}
+	}
+}
+
+void APlayerCharacter::QuickRestart()
+{
+	if (ACourseGameMode* GM = Cast<ACourseGameMode>(UGameplayStatics::GetGameMode(GetWorld())))
+	{
+		GM->SaveScoreOnly();
+	}
+
+	if (APlayerController* PC = Cast<APlayerController>(GetController()))
+	{
+		PC->SetShowMouseCursor(true);
+		FInputModeGameAndUI Mode;
+		Mode.SetHideCursorDuringCapture(false);
+		PC->SetInputMode(Mode);
+	}
+
+	UGameplayStatics::OpenLevel(GetWorld(), FName(*GetWorld()->GetMapName()));
+}
+
 void APlayerCharacter::OnHealthChanged(float NewValue, float OldValue, float MaxValue)
 {
-	if (NewValue <= 0.0f && DeathSound)
+	if (NewValue <= 0.0f)
 	{
-		UGameplayStatics::PlaySoundAtLocation(this, DeathSound, GetActorLocation());
+		if (DeathSound)
+		{
+			UGameplayStatics::PlaySoundAtLocation(this, DeathSound, GetActorLocation());
+		}
+
+		if (ACourseGameMode* GM = Cast<ACourseGameMode>(UGameplayStatics::GetGameMode(GetWorld())))
+		{
+			GM->OnPlayerDied();
+		}
+
+		// Disable input and hide player
+		if (APlayerController* PC = Cast<APlayerController>(GetController()))
+		{
+			DisableInput(PC);
+		}
+		SetActorHiddenInGame(true);
+		SetActorEnableCollision(false);
 	}
 }
