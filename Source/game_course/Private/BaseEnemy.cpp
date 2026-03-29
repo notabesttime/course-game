@@ -6,8 +6,6 @@
 #include "BaseAttributeSet.h"
 #include "Components/WidgetComponent.h"
 #include "Components/MeshComponent.h"
-#include "Materials/Material.h"
-#include "Materials/MaterialExpressionConstant4Vector.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "HealingOrb.h"
@@ -27,34 +25,17 @@ ABaseEnemy::ABaseEnemy()
 
 void ABaseEnemy::CreateHighlightMaterial()
 {
-#if WITH_EDITOR
-	// Cache a single material across all enemy instances so PostEditChange()
-	// (shader compilation) only runs once instead of per-spawn.
-	static TWeakObjectPtr<UMaterial> CachedMat;
-	if (CachedMat.IsValid())
-	{
-		HighlightMaterial = CachedMat.Get();
-		return;
-	}
-
-	UMaterial* Mat = NewObject<UMaterial>(GetTransientPackage(), NAME_None, RF_Transient);
-
-	UMaterialExpressionConstant4Vector* ColorExpr = NewObject<UMaterialExpressionConstant4Vector>(Mat);
-	ColorExpr->Constant = FLinearColor(1.0f, 0.0f, 0.0f, 1.0f); // red
-
-	Mat->GetExpressionCollection().AddExpression(ColorExpr);
-	Mat->GetEditorOnlyData()->EmissiveColor.Expression = ColorExpr;
-	Mat->BlendMode = BLEND_Additive;
-	Mat->bUsedWithSkeletalMesh = true;
-	Mat->PostEditChange(); // triggers shader compilation — only once now
-
-	CachedMat = Mat;
-	HighlightMaterial = Mat;
-#endif
+	// Intentionally left empty: highlight material must be author-provided
+	// via the HighlightMaterial property so it works identically in PIE and packaged builds.
 }
 
 void ABaseEnemy::StartHighlight_Implementation()
 {
+	if (!HighlightMaterial)
+	{
+		return;
+	}
+
 	TArray<UMeshComponent*> Meshes;
 	GetComponents<UMeshComponent>(Meshes);
 	for (UMeshComponent* MeshComp : Meshes)
@@ -97,11 +78,6 @@ void ABaseEnemy::OnHealthChanged(float NewValue, float OldValue, float MaxValue)
 void ABaseEnemy::BeginPlay()
 {
 	Super::BeginPlay();
-
-	if (!HighlightMaterial)
-	{
-		CreateHighlightMaterial();
-	}
 
 	// Override to full health — base character defaults to 75
 	if (AttributeSet)
