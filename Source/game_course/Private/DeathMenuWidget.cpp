@@ -173,7 +173,12 @@ void UDeathMenuWidget::OnRestartClicked()
 		Mode.SetHideCursorDuringCapture(false);
 		PC->SetInputMode(Mode);
 	}
-	UGameplayStatics::OpenLevel(GetWorld(), FName(*GetWorld()->GetMapName()));
+
+	const FString CurrentLevelName = UGameplayStatics::GetCurrentLevelName(this, true);
+	if (!CurrentLevelName.IsEmpty())
+	{
+		UGameplayStatics::OpenLevel(this, FName(*CurrentLevelName));
+	}
 }
 
 void UDeathMenuWidget::OnClearScoresClicked()

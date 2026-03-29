@@ -21,6 +21,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "CourseGameMode.h"
 #include "GameFramework/WorldSettings.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "InputCoreTypes.h"
 
 APlayerCharacter::APlayerCharacter()
 {
@@ -143,10 +145,6 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		{
 			EIC->BindAction(MoveInputAction, ETriggerEvent::Triggered, this, &APlayerCharacter::Move);
 		}
-		if (DebugDieInputAction)
-		{
-			EIC->BindAction(DebugDieInputAction, ETriggerEvent::Started, this, &APlayerCharacter::DebugDie);
-		}
 		if (RestartInputAction)
 		{
 			EIC->BindAction(RestartInputAction, ETriggerEvent::Started, this, &APlayerCharacter::QuickRestart);
@@ -161,6 +159,8 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 			EIC->BindAction(TimeSlowInputAction, ETriggerEvent::Completed, this, &APlayerCharacter::DeactivateTimeSlow);
 		}
 	}
+
+	PlayerInputComponent->BindKey(EKeys::Tab, IE_Pressed, this, &APlayerCharacter::DebugDie);
 }
 
 void APlayerCharacter::Move(const FInputActionValue& Value)
@@ -220,6 +220,12 @@ void APlayerCharacter::ActivateRanged()
 
 void APlayerCharacter::DebugDie()
 {
+	APlayerController* PC = Cast<APlayerController>(GetController());
+	if (!PC || !PC->IsInputKeyDown(EKeys::Tab))
+	{
+		return;
+	}
+
 	if (AttributeSet)
 	{
 		// Force health to 0, which triggers OnHealthChanged → full death flow
@@ -246,7 +252,11 @@ void APlayerCharacter::QuickRestart()
 		PC->SetInputMode(Mode);
 	}
 
-	UGameplayStatics::OpenLevel(GetWorld(), FName(*GetWorld()->GetMapName()));
+	const FString CurrentLevelName = UGameplayStatics::GetCurrentLevelName(this, true);
+	if (!CurrentLevelName.IsEmpty())
+	{
+		UGameplayStatics::OpenLevel(this, FName(*CurrentLevelName));
+	}
 }
 
 void APlayerCharacter::DebugActivateShield()
@@ -310,7 +320,15 @@ void APlayerCharacter::OnHealthChanged(float NewValue, float OldValue, float Max
 		{
 			DisableInput(PC);
 		}
+
+		if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
+		{
+			MoveComp->StopMovementImmediately();
+			MoveComp->DisableMovement();
+		}
+
 		SetActorHiddenInGame(true);
-		SetActorEnableCollision(false);
+		// Keep collision enabled so the camera target doesn't fall through landscape on mid-air death.
+		SetActorEnableCollision(true);
 	}
 }
