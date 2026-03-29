@@ -4,9 +4,7 @@
 #include "BaseCompanionAIController.h"
 #include "BaseEnemy.h"
 #include "PlayerCharacter.h"
-#include "BaseAttributeSet.h"
-#include "AbilitySystemComponent.h"
-#include "AbilitySystemInterface.h"
+#include "CombatAttributeUtils.h"
 #include "AIController.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/OverlapResult.h"
@@ -249,16 +247,8 @@ void ABaseCompanion::PerformAttack(ABaseEnemy* Target)
 			continue;
 		}
 
-		if (IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(HitEnemy))
+		if (CombatAttributeUtils::ApplyHealthDelta(HitEnemy, -AttackDamage))
 		{
-			UAbilitySystemComponent* TargetASC = ASI->GetAbilitySystemComponent();
-			if (!TargetASC) continue;
-
-			const UBaseAttributeSet* AttrSet = TargetASC->GetSet<UBaseAttributeSet>();
-			if (!AttrSet) continue;
-
-			float NewHealth = FMath::Max(0.f, AttrSet->GetHealth() - AttackDamage);
-			TargetASC->SetNumericAttributeBase(UBaseAttributeSet::GetHealthAttribute(), NewHealth);
 			DamagedActors.Add(HitEnemy);
 		}
 	}

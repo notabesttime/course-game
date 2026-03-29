@@ -13,6 +13,13 @@ class GAME_COURSE_API AMinionMageProjectile : public AActor
 
 public:
 	AMinionMageProjectile();
+	static AMinionMageProjectile* SpawnOrReuse(UWorld* World, TSubclassOf<AMinionMageProjectile> ProjectileClass,
+		const FVector& Location, const FRotator& Rotation, AActor* Owner = nullptr, APawn* InstigatorPawn = nullptr);
+	static void GetPoolStats(int32& OutTotal, int32& OutActive, int32& OutInactive);
+	static void LogPoolStats();
+
+	void ActivateFromPool(const FVector& Location, const FRotator& Rotation, AActor* InOwner, APawn* InstigatorPawn);
+	void ReturnToPool();
 
 protected:
 	virtual void BeginPlay() override;
@@ -27,6 +34,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Projectile")
 	float DamageAmount = 10.f;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Projectile")
+	float PooledLifetime = 5.f;
+
 	// Called on impact — implement in Blueprint for VFX/sound
 	UFUNCTION(BlueprintImplementableEvent, Category = "Projectile")
 	void OnProjectileImpact(FVector ImpactLocation);
@@ -38,4 +48,6 @@ private:
 		bool bFromSweep, const FHitResult& SweepResult);
 
 	bool bHasImpacted = false;
+	bool bIsPooledActive = true;
+	FTimerHandle ReturnTimerHandle;
 };

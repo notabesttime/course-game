@@ -8,8 +8,7 @@
 #include "PlayerShieldComponent.h"
 #include "BaseEnemy.h"
 #include "BaseAttributeSet.h"
-#include "AbilitySystemComponent.h"
-#include "AbilitySystemInterface.h"
+#include "CombatAttributeUtils.h"
 #include "Animation/AnimSequence.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -141,10 +140,7 @@ void AMinionMage::TryAttackPlayer()
 	FVector Direction = (Player->GetActorLocation() + FVector(0.f, 0.f, 50.f) - SpawnLocation).GetSafeNormal();
 	FRotator SpawnRotation = Direction.Rotation();
 
-	FActorSpawnParameters Params;
-	Params.Instigator = this;
-	Params.Owner = this;
-	GetWorld()->SpawnActor<AMinionMageProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, Params);
+	AMinionMageProjectile::SpawnOrReuse(GetWorld(), ProjectileClass, SpawnLocation, SpawnRotation, this, this);
 
 	SetAnimState(EMageAnimState::Casting);
 
@@ -212,20 +208,18 @@ void AMinionMage::TryHealAlly()
 			continue;
 		}
 
-		if (IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(Ally))
+		UAbilitySystemComponent* AllyASC = nullptr;
+		const UBaseAttributeSet* AttrSet = nullptr;
+		if (!CombatAttributeUtils::TryGetAbilityData(Ally, AllyASC, AttrSet) || AttrSet->GetMaxHealth() <= 0.f)
 		{
-			UAbilitySystemComponent* AllyASC = ASI->GetAbilitySystemComponent();
-			if (!AllyASC) continue;
+			continue;
+		}
 
-			const UBaseAttributeSet* AttrSet = AllyASC->GetSet<UBaseAttributeSet>();
-			if (!AttrSet || AttrSet->GetMaxHealth() <= 0.f) continue;
-
-			float HealthPct = AttrSet->GetHealth() / AttrSet->GetMaxHealth();
-			if (HealthPct < LowestHealthPct)
-			{
-				LowestHealthPct = HealthPct;
-				BestTarget = Ally;
-			}
+		float HealthPct = AttrSet->GetHealth() / AttrSet->GetMaxHealth();
+		if (HealthPct < LowestHealthPct)
+		{
+			LowestHealthPct = HealthPct;
+			BestTarget = Ally;
 		}
 	}
 
@@ -234,14 +228,7 @@ void AMinionMage::TryHealAlly()
 		return;
 	}
 
-	// Apply heal
-	if (IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(BestTarget))
-	{
-		UAbilitySystemComponent* AllyASC = ASI->GetAbilitySystemComponent();
-		const UBaseAttributeSet* AttrSet = AllyASC->GetSet<UBaseAttributeSet>();
-		float NewHealth = FMath::Min(AttrSet->GetMaxHealth(), AttrSet->GetHealth() + HealAmount);
-		AllyASC->SetNumericAttributeBase(UBaseAttributeSet::GetHealthAttribute(), NewHealth);
-	}
+	CombatAttributeUtils::ApplyHealthDelta(BestTarget, HealAmount);
 
 	CurrentAnimState = EMageAnimState::Casting;
 	if (HealCastAnimations.Num() > 0)

@@ -15,6 +15,53 @@
 // ---------------------------------------------------------------------------
 namespace
 {
+	struct FWaveSample
+	{
+		float NX;
+		float SinNX;
+		float CosNX;
+	};
+
+	static const TArray<FVector2f>& GetUnitCircleSamples(int32 Segs)
+	{
+		static TMap<int32, TArray<FVector2f>> Cache;
+		if (const TArray<FVector2f>* Found = Cache.Find(Segs))
+		{
+			return *Found;
+		}
+
+		TArray<FVector2f> Samples;
+		Samples.Reserve(Segs + 1);
+		for (int32 i = 0; i <= Segs; ++i)
+		{
+			const float A = (float)i / Segs * 2.f * PI;
+			Samples.Add(FVector2f(FMath::Cos(A), FMath::Sin(A)));
+		}
+
+		return Cache.Add(Segs, MoveTemp(Samples));
+	}
+
+	static const TArray<FWaveSample>& GetWaveSamples(int32 WaveSegs)
+	{
+		static TMap<int32, TArray<FWaveSample>> Cache;
+		if (const TArray<FWaveSample>* Found = Cache.Find(WaveSegs))
+		{
+			return *Found;
+		}
+
+		TArray<FWaveSample> Samples;
+		Samples.Reserve(WaveSegs + 1);
+		for (int32 i = 0; i <= WaveSegs; ++i)
+		{
+			const float T = (float)i / WaveSegs;
+			const float NX = -1.f + (2.f * T);
+			const float A = NX * 2.f * PI;
+			Samples.Add({ NX, FMath::Sin(A), FMath::Cos(A) });
+		}
+
+		return Cache.Add(WaveSegs, MoveTemp(Samples));
+	}
+
 	// Build a filled circle as a triangle fan.
 	static void AddFilledCircle(TArray<FSlateVertex>& Verts, TArray<SlateIndex>& Indices,
 		const FSlateRenderTransform& RT, FVector2f Center, float R, FColor Col, int32 Segs = 48)
@@ -23,12 +70,13 @@ namespace
 		Verts.Add(FSlateVertex::Make<ESlateVertexRounding::Disabled>(RT, Center,
 			FVector2f(0.5f, 0.5f), FVector2f(0.5f, 0.5f), Col));
 
+		const TArray<FVector2f>& Circle = GetUnitCircleSamples(Segs);
 		for (int32 i = 0; i <= Segs; i++)
 		{
-			const float A = (float)i / Segs * 2.f * PI;
-			const FVector2f P = Center + FVector2f(FMath::Cos(A), FMath::Sin(A)) * R;
+			const FVector2f Dir = Circle[i];
+			const FVector2f P = Center + Dir * R;
 			Verts.Add(FSlateVertex::Make<ESlateVertexRounding::Disabled>(RT, P,
-				FVector2f(0.5f + FMath::Cos(A) * 0.5f, 0.5f + FMath::Sin(A) * 0.5f),
+				FVector2f(0.5f + Dir.X * 0.5f, 0.5f + Dir.Y * 0.5f),
 				FVector2f(0.5f, 0.5f), Col));
 			if (i > 0)
 			{
@@ -69,14 +117,18 @@ namespace
 		// 1. Wavy top surface from left edge to right edge (x increasing)
 		const float LeftX  = Center.X - XHalf;
 		const float RightX = Center.X + XHalf;
+		const TArray<FWaveSample>& WaveSamples = GetWaveSamples(WaveSegs);
+		const float SinPhase = FMath::Sin(Phase);
+		const float CosPhase = FMath::Cos(Phase);
 
 		for (int32 i = 0; i <= WaveSegs; i++)
 		{
 			const float T  = (float)i / WaveSegs;
 			const float X  = LeftX + T * (RightX - LeftX);
-			const float NX = (X - Center.X) / R;           // normalized −1…1
+			const FWaveSample& Sample = WaveSamples[i];
+			const float NX = Sample.NX;                     // normalized -1..1
 			const float Slope = Tilt * NX;                  // lateral tilt
-			const float Wave  = Amp * FMath::Sin(Phase + NX * 2.f * PI);
+			const float Wave  = Amp * (SinPhase * Sample.CosNX + CosPhase * Sample.SinNX);
 			float Y = BaseY + Slope + Wave;
 
 			// Clamp inside the circle
@@ -181,12 +233,13 @@ namespace
 	{
 		const float     InnerR = R - 2.5f;
 		const SlateIndex Base  = (SlateIndex)Verts.Num();
+		const TArray<FVector2f>& Circle = GetUnitCircleSamples(Segs);
 
 		for (int32 i = 0; i <= Segs; i++)
 		{
-			const float A = (float)i / Segs * 2.f * PI;
-			const FVector2f OuterP = Center + FVector2f(FMath::Cos(A), FMath::Sin(A)) * R;
-			const FVector2f InnerP = Center + FVector2f(FMath::Cos(A), FMath::Sin(A)) * InnerR;
+			const FVector2f Dir = Circle[i];
+			const FVector2f OuterP = Center + Dir * R;
+			const FVector2f InnerP = Center + Dir * InnerR;
 
 			Verts.Add(FSlateVertex::Make<ESlateVertexRounding::Disabled>(RT, OuterP,
 				FVector2f(0.5f, 0.5f), FVector2f(0.5f, 0.5f), OuterCol));

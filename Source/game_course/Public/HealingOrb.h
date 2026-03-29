@@ -13,6 +13,13 @@ class GAME_COURSE_API AHealingOrb : public AActor
 
 public:
 	AHealingOrb();
+	static AHealingOrb* SpawnOrReuse(UWorld* World, TSubclassOf<AHealingOrb> OrbClass,
+		const FVector& Location, const FRotator& Rotation, AActor* Owner = nullptr);
+	static void GetPoolStats(int32& OutTotal, int32& OutActive, int32& OutInactive);
+	static void LogPoolStats();
+
+	void ActivateFromPool(const FVector& Location, const FRotator& Rotation, AActor* InOwner);
+	void ReturnToPool();
 
 protected:
 	virtual void BeginPlay() override;
@@ -41,7 +48,14 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Orb")
 	float AttackPauseTime = 0.2f;
 
+	// Safety timeout so pooled orbs don't remain active forever
+	UPROPERTY(EditDefaultsOnly, Category = "Orb")
+	float MaxActiveLifetime = 20.f;
+
 private:
 	UPROPERTY()
 	class APlayerCharacter* CachedPlayer;
+
+	bool bIsPooledActive = true;
+	FTimerHandle AutoReturnTimer;
 };

@@ -52,12 +52,14 @@ void UPlayerRangedAbility::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 	FVector SpawnLocation = AvatarActor->GetActorLocation() + FireDirection * SpawnOffset;
 	FRotator SpawnRotation = FireDirection.Rotation();
 
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.Owner = AvatarActor;
-	SpawnParams.Instigator = Cast<APawn>(AvatarActor);
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-	GetWorld()->SpawnActor<APlayerAbilityProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, SpawnParams);
+	APlayerAbilityProjectile::SpawnOrReuse(
+		GetWorld(),
+		ProjectileClass,
+		SpawnLocation,
+		SpawnRotation,
+		AvatarActor,
+		Cast<APawn>(AvatarActor)
+	);
 
 	OnRangedFired(SpawnLocation, FireDirection);
 

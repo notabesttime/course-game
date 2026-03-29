@@ -77,7 +77,7 @@ void ABaseEnemy::OnHealthChanged(float NewValue, float OldValue, float MaxValue)
 		}
 		if (HealingOrbClass)
 		{
-			GetWorld()->SpawnActor<AHealingOrb>(HealingOrbClass, GetActorLocation(), FRotator::ZeroRotator);
+			AHealingOrb::SpawnOrReuse(GetWorld(), HealingOrbClass, GetActorLocation(), FRotator::ZeroRotator, this);
 		}
 		OnDied();
 		Destroy();

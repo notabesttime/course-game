@@ -3,9 +3,7 @@
 #include "PlayerMeleeAbility.h"
 #include "BaseEnemy.h"
 #include "EnemySpawner.h"
-#include "BaseAttributeSet.h"
-#include "AbilitySystemComponent.h"
-#include "AbilitySystemInterface.h"
+#include "CombatAttributeUtils.h"
 #include "Engine/OverlapResult.h"
 #include "Animation/AnimMontage.h"
 
@@ -84,16 +82,8 @@ TArray<FVector> UPlayerMeleeAbility::ApplyDamageInRadius(AActor* AvatarActor) co
 			continue;
 		}
 
-		if (IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(HitActor))
+		if (CombatAttributeUtils::ApplyHealthDelta(HitActor, -DamageAmount))
 		{
-			UAbilitySystemComponent* TargetASC = ASI->GetAbilitySystemComponent();
-			if (!TargetASC) continue;
-
-			const UBaseAttributeSet* AttrSet = TargetASC->GetSet<UBaseAttributeSet>();
-			if (!AttrSet) continue;
-
-			float NewHealth = FMath::Max(0.f, AttrSet->GetHealth() - DamageAmount);
-			TargetASC->SetNumericAttributeBase(UBaseAttributeSet::GetHealthAttribute(), NewHealth);
 			DamagedActors.Add(HitActor);
 			HitLocations.Add(HitActor->GetActorLocation());
 		}

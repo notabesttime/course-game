@@ -4,9 +4,7 @@
 #include "MinionWarriorAIController.h"
 #include "EnemySpawner.h"
 #include "PlayerCharacter.h"
-#include "BaseAttributeSet.h"
-#include "AbilitySystemComponent.h"
-#include "AbilitySystemInterface.h"
+#include "CombatAttributeUtils.h"
 #include "Animation/AnimSequence.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -134,20 +132,7 @@ void AMinionWarrior::TryAttackPlayer()
 		SetActorRotation(ToPlayer.Rotation());
 	}
 
-	// Apply damage
-	if (IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(Player))
-	{
-		UAbilitySystemComponent* TargetASC = ASI->GetAbilitySystemComponent();
-		if (TargetASC)
-		{
-			const UBaseAttributeSet* AttrSet = TargetASC->GetSet<UBaseAttributeSet>();
-			if (AttrSet)
-			{
-				float NewHealth = FMath::Max(0.f, AttrSet->GetHealth() - AttackDamage);
-				TargetASC->SetNumericAttributeBase(UBaseAttributeSet::GetHealthAttribute(), NewHealth);
-			}
-		}
-	}
+	CombatAttributeUtils::ApplyHealthDelta(Player, -AttackDamage);
 
 	SetAnimState(EWarriorAnimState::Attacking);
 
