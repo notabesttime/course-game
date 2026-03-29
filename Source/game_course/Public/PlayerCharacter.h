@@ -29,6 +29,9 @@ public:
 
 protected:
 	// Input actions — create IA_Melee and IA_Ranged in editor, map to LMB/RMB
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
+	class UCameraOcclusionComponent* CameraOcclusionComponent;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	class UInputAction* MeleeInputAction;
 

@@ -11,12 +11,14 @@
 #include "Engine/EngineTypes.h"
 #include "HealthComponent.h"
 #include "ManaComponent.h"
+#include "CameraOcclusionComponent.h"
 #include "BaseAttributeSet.h"
 #include "Kismet/GameplayStatics.h"
 
 APlayerCharacter::APlayerCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
+	CameraOcclusionComponent = CreateDefaultSubobject<UCameraOcclusionComponent>(TEXT("CameraOcclusionComponent"));
 }
 
 void APlayerCharacter::BeginPlay()
