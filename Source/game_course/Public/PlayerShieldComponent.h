@@ -34,13 +34,13 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Shield")
 	float ShieldDuration = 2.f;
 
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
 private:
 	void DeactivateShield();
+	void ReplayEffect();
 
 	bool bShieldActive = false;
 	FTimerHandle ShieldTimer;
+	FTimerHandle EffectReplayTimer;
 
 	UPROPERTY()
 	class UNiagaraComponent* ActiveEffectComp;

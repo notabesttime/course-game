@@ -3,8 +3,11 @@
 #include "EnemySpawner.h"
 #include "MinionWarrior.h"
 #include "MinionMage.h"
+#include "MinionBrute.h"
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystem.h"
+
+int32 AEnemySpawner::TotalSpawnCount = 0;
 
 AEnemySpawner::AEnemySpawner()
 {
@@ -57,23 +60,43 @@ int32 AEnemySpawner::CountMages() const
 	return Found.Num();
 }
 
+int32 AEnemySpawner::CountBrutes() const
+{
+	TArray<AActor*> Found;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AMinionBrute::StaticClass(), Found);
+	return Found.Num();
+}
+
 void AEnemySpawner::TrySpawn()
 {
 	const int32 Warriors = CountWarriors();
 	const int32 Mages = CountMages();
+	const int32 Brutes = CountBrutes();
 
-	// Spawn transform: same location as spawner, yaw only (no pitch/roll)
-	FTransform SpawnTransform(FRotator(0.f, GetActorRotation().Yaw, 0.f), GetActorLocation());
+	// Spawn transform: offset slightly so multiple enemies don't stack on the exact same point
+	FVector SpawnOffset(FMath::FRandRange(-80.f, 80.f), FMath::FRandRange(-80.f, 80.f), 0.f);
+	FTransform SpawnTransform(FRotator(0.f, GetActorRotation().Yaw, 0.f), GetActorLocation() + SpawnOffset);
 
 	bool bSpawned = false;
 
-	// Try to spawn a warrior if under the limit
-	if (WarriorClass && Warriors < MaxWarriors)
+	// Every 10th spawn is a brute instead of a warrior
+	const bool bSpawnBrute = (TotalSpawnCount % 10 == 9) && BruteClass && Brutes < MaxBrutes;
+
+	if (bSpawnBrute)
+	{
+		FActorSpawnParameters Params;
+		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+		GetWorld()->SpawnActor<AMinionBrute>(BruteClass, SpawnTransform, Params);
+		bSpawned = true;
+		TotalSpawnCount++;
+	}
+	else if (WarriorClass && Warriors < MaxWarriors)
 	{
 		FActorSpawnParameters Params;
 		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 		GetWorld()->SpawnActor<AMinionWarrior>(WarriorClass, SpawnTransform, Params);
 		bSpawned = true;
+		TotalSpawnCount++;
 	}
 
 	// Try to spawn a mage if under the limit and ratio allows (1 mage per 2 warriors)

@@ -7,17 +7,28 @@
 
 UPlayerShieldComponent::UPlayerShieldComponent()
 {
-	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.bCanEverTick = false;
 }
 
-void UPlayerShieldComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+void UPlayerShieldComponent::ReplayEffect()
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	if (!bShieldActive || !ShieldEffect) return;
 
-	if (bShieldActive && ActiveEffectComp && !ActiveEffectComp->IsActive())
+	if (ActiveEffectComp)
 	{
-		ActiveEffectComp->Activate(true);
+		ActiveEffectComp->DestroyComponent();
+		ActiveEffectComp = nullptr;
 	}
+
+	ActiveEffectComp = UNiagaraFunctionLibrary::SpawnSystemAttached(
+		ShieldEffect,
+		GetOwner()->GetRootComponent(),
+		NAME_None,
+		FVector::ZeroVector,
+		FRotator::ZeroRotator,
+		EAttachLocation::SnapToTarget,
+		false
+	);
 }
 
 void UPlayerShieldComponent::ActivateShield(float Duration /*= -1.f*/)
@@ -37,24 +48,32 @@ void UPlayerShieldComponent::ActivateShield(float Duration /*= -1.f*/)
 	GetOwner()->GetWorldTimerManager().SetTimer(
 		ShieldTimer, this, &UPlayerShieldComponent::DeactivateShield, EffectiveDuration, false);
 
-	// Spawn and attach effect if not already running
-	if (ShieldEffect && !ActiveEffectComp)
+	// Spawn effect and start replay timer (replays every 2 seconds while shield is active)
+	if (ShieldEffect)
 	{
-		ActiveEffectComp = UNiagaraFunctionLibrary::SpawnSystemAttached(
-			ShieldEffect,
-			GetOwner()->GetRootComponent(),
-			NAME_None,
-			FVector::ZeroVector,
-			FRotator::ZeroRotator,
-			EAttachLocation::SnapToTarget,
-			false   // do NOT auto-destroy — we destroy it manually
-		);
+		if (!ActiveEffectComp)
+		{
+			ActiveEffectComp = UNiagaraFunctionLibrary::SpawnSystemAttached(
+				ShieldEffect,
+				GetOwner()->GetRootComponent(),
+				NAME_None,
+				FVector::ZeroVector,
+				FRotator::ZeroRotator,
+				EAttachLocation::SnapToTarget,
+				false
+			);
+		}
+
+		GetOwner()->GetWorldTimerManager().SetTimer(
+			EffectReplayTimer, this, &UPlayerShieldComponent::ReplayEffect, 2.f, true);
 	}
 }
 
 void UPlayerShieldComponent::DeactivateShield()
 {
 	bShieldActive = false;
+
+	GetOwner()->GetWorldTimerManager().ClearTimer(EffectReplayTimer);
 
 	if (ActiveEffectComp)
 	{

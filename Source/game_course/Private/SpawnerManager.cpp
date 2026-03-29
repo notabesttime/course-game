@@ -36,11 +36,41 @@ void ASpawnerManager::PlaceWave()
 		return;
 	}
 
+	TArray<FVector> PlacedLocations;
+
 	for (int32 i = 0; i < NextWaveCount; i++)
 	{
 		FNavLocation RandomLocation;
-		if (NavSys->GetRandomReachablePointInRadius(GetActorLocation(), SearchRadius, RandomLocation))
+		bool bFound = false;
+
+		// Retry up to 10 times to find a spot far enough from already-placed spawners
+		for (int32 Attempt = 0; Attempt < 10; Attempt++)
 		{
+			if (!NavSys->GetRandomReachablePointInRadius(GetActorLocation(), SearchRadius, RandomLocation))
+			{
+				break;
+			}
+
+			bool bTooClose = false;
+			for (const FVector& Existing : PlacedLocations)
+			{
+				if (FVector::Dist2D(RandomLocation.Location, Existing) < MinSpawnerDistance)
+				{
+					bTooClose = true;
+					break;
+				}
+			}
+
+			if (!bTooClose)
+			{
+				bFound = true;
+				break;
+			}
+		}
+
+		if (bFound)
+		{
+			PlacedLocations.Add(RandomLocation.Location);
 			AEnemySpawner* Spawner = GetWorld()->SpawnActor<AEnemySpawner>(SpawnerClass, RandomLocation.Location, FRotator::ZeroRotator);
 			if (Spawner && SpawnLimitBonus > 0)
 			{

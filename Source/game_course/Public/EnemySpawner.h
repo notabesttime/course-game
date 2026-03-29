@@ -6,6 +6,8 @@
 #include "BaseEnemy.h"
 #include "EnemySpawner.generated.h"
 
+class AMinionBrute;
+
 UCLASS()
 class GAME_COURSE_API AEnemySpawner : public ABaseEnemy
 {
@@ -21,6 +23,10 @@ public:
 	// Maximum mages allowed in the level at once
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawner|Limits")
 	int32 MaxMages = 10;
+
+	// Maximum brutes allowed in the level at once
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawner|Limits")
+	int32 MaxBrutes = 4;
 
 protected:
 	virtual void BeginPlay() override;
@@ -48,6 +54,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawner")
 	TSubclassOf<class AMinionMage> MageClass;
 
+	// Blueprint subclass of MinionBrute to spawn
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawner")
+	TSubclassOf<AMinionBrute> BruteClass;
+
 	// Seconds between spawn attempts
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawner")
 	float SpawnInterval = 3.0f;
@@ -57,6 +67,8 @@ private:
 
 	int32 CountWarriors() const;
 	int32 CountMages() const;
+	int32 CountBrutes() const;
 
 	FTimerHandle SpawnTimerHandle;
+	static int32 TotalSpawnCount;
 };

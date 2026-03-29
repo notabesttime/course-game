@@ -29,11 +29,15 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Spawner Manager")
 	float SearchRadius = 5000.f;
 
+	// Minimum distance between any two spawners placed in the same wave
+	UPROPERTY(EditDefaultsOnly, Category = "Spawner Manager")
+	float MinSpawnerDistance = 1500.f;
+
 private:
 	void PlaceWave();
 
 	FTimerHandle SpawnTimerHandle;
-	int32 NextWaveCount = 1;
+	int32 NextWaveCount = 2;
 	int32 WaveNumber = 1;
 	int32 SpawnLimitBonus = 0;
 };
