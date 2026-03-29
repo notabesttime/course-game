@@ -251,15 +251,9 @@ void APlayerCharacter::QuickRestart()
 
 void APlayerCharacter::DebugActivateShield()
 {
-	UE_LOG(LogTemp, Warning, TEXT("DebugActivateShield called"));
 	if (ShieldComponent)
 	{
 		ShieldComponent->ActivateShield(60.f);
-		UE_LOG(LogTemp, Warning, TEXT("Shield activated"));
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("ShieldComponent is null"));
 	}
 }
 

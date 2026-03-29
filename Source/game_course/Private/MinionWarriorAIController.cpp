@@ -14,8 +14,6 @@ void AMinionWarriorAIController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
 
-	UE_LOG(LogTemp, Warning, TEXT("MinionWarriorAIController: OnPossess called on %s"), *InPawn->GetName());
-
 	GetWorldTimerManager().SetTimer(
 		MoveTimerHandle,
 		this,
