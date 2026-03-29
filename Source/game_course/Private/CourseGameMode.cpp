@@ -18,6 +18,15 @@ void ACourseGameMode::BeginPlay()
 		SpawnerManager = GetWorld()->SpawnActor<ASpawnerManager>(
 			SpawnerManagerClass, FVector::ZeroVector, FRotator::ZeroRotator);
 	}
+
+	if (LevelMusic.Num() > 0)
+	{
+		int32 Index = FMath::RandRange(0, LevelMusic.Num() - 1);
+		if (LevelMusic[Index])
+		{
+			UGameplayStatics::PlaySound2D(GetWorld(), LevelMusic[Index]);
+		}
+	}
 }
 
 void ACourseGameMode::OnPlayerDied()

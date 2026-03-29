@@ -73,7 +73,7 @@ void ABaseEnemy::OnHealthChanged(float NewValue, float OldValue, float MaxValue)
 		}
 		if (DeathSound)
 		{
-			UGameplayStatics::PlaySoundAtLocation(this, DeathSound, GetActorLocation(), 0.5f);
+			UGameplayStatics::PlaySoundAtLocation(this, DeathSound, GetActorLocation(), 0.25f);
 		}
 		if (HealingOrbClass)
 		{

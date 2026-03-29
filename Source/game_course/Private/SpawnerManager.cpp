@@ -68,6 +68,13 @@ void ASpawnerManager::PlaceWave()
 			}
 		}
 
+		if (!bFound)
+		{
+			// Fallback: use whatever the last random point was (ignoring distance constraint)
+			NavSys->GetRandomReachablePointInRadius(GetActorLocation(), SearchRadius, RandomLocation);
+			bFound = true;
+		}
+
 		if (bFound)
 		{
 			PlacedLocations.Add(RandomLocation.Location);

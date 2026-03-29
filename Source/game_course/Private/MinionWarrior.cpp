@@ -149,7 +149,7 @@ void AMinionWarrior::TryAttackPlayer()
 
 	if (AttackSound)
 	{
-		UGameplayStatics::PlaySoundAtLocation(this, AttackSound, GetActorLocation(), 0.5f);
+		UGameplayStatics::PlaySoundAtLocation(this, AttackSound, GetActorLocation(), 0.25f);
 	}
 
 	bAttackOnCooldown = true;

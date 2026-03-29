@@ -21,6 +21,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Spawning")
 	TSubclassOf<class ASpawnerManager> SpawnerManagerClass;
 
+	// Add sound cues here — one will be picked at random on level start
+	UPROPERTY(EditDefaultsOnly, Category = "Music")
+	TArray<USoundBase*> LevelMusic;
+
 private:
 	UPROPERTY()
 	class ASpawnerManager* SpawnerManager = nullptr;

@@ -46,7 +46,7 @@ protected:
 
 	// Damage dealt to player per attack
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Brute|Combat")
-	float AttackDamage = 50.f;
+	float AttackDamage = 33.f;
 
 	// Range at which the brute starts attacking
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Brute|Combat")

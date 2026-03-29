@@ -34,7 +34,7 @@ void AEnemySpawner::BeginPlay()
 
 	if (AppearSound)
 	{
-		UGameplayStatics::PlaySoundAtLocation(this, AppearSound, GetActorLocation(), 0.5f);
+		UGameplayStatics::PlaySoundAtLocation(this, AppearSound, GetActorLocation(), 0.25f);
 	}
 
 	GetWorldTimerManager().SetTimer(
@@ -110,6 +110,6 @@ void AEnemySpawner::TrySpawn()
 
 	if (bSpawned && SpawnSound)
 	{
-		UGameplayStatics::PlaySoundAtLocation(this, SpawnSound, GetActorLocation(), 0.5f);
+		UGameplayStatics::PlaySoundAtLocation(this, SpawnSound, GetActorLocation(), 0.25f);
 	}
 }
