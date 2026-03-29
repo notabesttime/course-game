@@ -53,6 +53,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	class UInputAction* DebugShieldInputAction;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	class UInputAction* TimeSlowInputAction;
+
 	// Set these in BP_PlayerCharacter Class Defaults to the Blueprint ability subclasses
 	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
 	TSubclassOf<class UPlayerMeleeAbility> MeleeAbilityClass;
@@ -81,11 +84,14 @@ private:
 	void DebugDie();
 	void QuickRestart();
 	void DebugActivateShield();
+	void ActivateTimeSlow();
+	void DeactivateTimeSlow();
 
 	UFUNCTION()
 	void OnHealthChanged(float NewValue, float OldValue, float MaxValue);
 
 	float LastAttackTime = -10.f;
+	bool bTimeSlowActive = false;
 
 	FGameplayAbilitySpecHandle MeleeAbilityHandle;
 	FGameplayAbilitySpecHandle RangedAbilityHandle;

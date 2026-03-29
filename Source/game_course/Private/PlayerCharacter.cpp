@@ -19,6 +19,7 @@
 #include "BaseAttributeSet.h"
 #include "Kismet/GameplayStatics.h"
 #include "CourseGameMode.h"
+#include "GameFramework/WorldSettings.h"
 
 APlayerCharacter::APlayerCharacter()
 {
@@ -54,8 +55,23 @@ void APlayerCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	UpdateHoveredEnemy();
 
-	// Mana regeneration: 20 per second
-	if (AbilitySystemComponent && AttributeSet)
+	// Time slow mana drain: 30 per second (DeltaTime is unscaled for player due to counter-dilation)
+	if (bTimeSlowActive && AbilitySystemComponent && AttributeSet)
+	{
+		float NewMana = AttributeSet->GetMana() - 30.f * DeltaTime;
+		if (NewMana <= 0.f)
+		{
+			AttributeSet->SetMana(0.f);
+			DeactivateTimeSlow();
+		}
+		else
+		{
+			AttributeSet->SetMana(NewMana);
+		}
+	}
+
+	// Mana regeneration: 20 per second (suppressed while time slow is draining mana)
+	if (!bTimeSlowActive && AbilitySystemComponent && AttributeSet)
 	{
 		const float CurrentMana = AttributeSet->GetMana();
 		const float MaxMana     = AttributeSet->GetMaxMana();
@@ -124,6 +140,11 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		if (DebugShieldInputAction)
 		{
 			EIC->BindAction(DebugShieldInputAction, ETriggerEvent::Started, this, &APlayerCharacter::DebugActivateShield);
+		}
+		if (TimeSlowInputAction)
+		{
+			EIC->BindAction(TimeSlowInputAction, ETriggerEvent::Started,   this, &APlayerCharacter::ActivateTimeSlow);
+			EIC->BindAction(TimeSlowInputAction, ETriggerEvent::Completed, this, &APlayerCharacter::DeactivateTimeSlow);
 		}
 	}
 }
@@ -228,6 +249,27 @@ void APlayerCharacter::DebugActivateShield()
 	}
 }
 
+void APlayerCharacter::ActivateTimeSlow()
+{
+	if (bTimeSlowActive) return;
+	if (!AttributeSet || AttributeSet->GetMana() <= 0.f) return;
+
+	bTimeSlowActive = true;
+
+	// Slow the whole world to 20%, counter-dilate the player to stay at 1x real speed
+	GetWorld()->GetWorldSettings()->SetTimeDilation(0.2f);
+	CustomTimeDilation = 5.0f;
+}
+
+void APlayerCharacter::DeactivateTimeSlow()
+{
+	if (!bTimeSlowActive) return;
+	bTimeSlowActive = false;
+
+	GetWorld()->GetWorldSettings()->SetTimeDilation(1.0f);
+	CustomTimeDilation = 1.0f;
+}
+
 void APlayerCharacter::OnHealthChanged(float NewValue, float OldValue, float MaxValue)
 {
 	// Shield blocks all damage — restore health back to pre-hit value
@@ -243,6 +285,8 @@ void APlayerCharacter::OnHealthChanged(float NewValue, float OldValue, float Max
 
 	if (NewValue <= 0.0f)
 	{
+		DeactivateTimeSlow();
+
 		if (DeathSound)
 		{
 			UGameplayStatics::PlaySoundAtLocation(this, DeathSound, GetActorLocation());
