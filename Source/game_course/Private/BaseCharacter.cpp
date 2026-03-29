@@ -4,6 +4,7 @@
 #include "BaseCharacter.h"
 #include "BaseAttributeSet.h"
 #include "HealthComponent.h"
+#include "ManaComponent.h"
 
 // Sets default values
 ABaseCharacter::ABaseCharacter()
@@ -18,6 +19,7 @@ ABaseCharacter::ABaseCharacter()
 	AttributeSet = CreateDefaultSubobject<UBaseAttributeSet>(TEXT("AttributeSet"));
 
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
+	ManaComponent = CreateDefaultSubobject<UManaComponent>(TEXT("ManaComponent"));
 }
 
 // Called when the game starts or when spawned
@@ -34,12 +36,18 @@ void ABaseCharacter::BeginPlay()
 		{
 			AttributeSet->InitMaxHealth(100.0f);
 			AttributeSet->InitHealth(100.0f);
+			AttributeSet->InitMaxMana(100.0f);
+			AttributeSet->InitMana(100.0f);
 		}
 
 		// Bind after InitAbilityActorInfo so GetSet<> is reliable
 		if (HealthComponent)
 		{
 			HealthComponent->BindToASC(AbilitySystemComponent);
+		}
+		if (ManaComponent)
+		{
+			ManaComponent->BindToASC(AbilitySystemComponent);
 		}
 	}
 }

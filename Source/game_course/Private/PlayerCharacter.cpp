@@ -10,6 +10,8 @@
 #include "GameFramework/PlayerController.h"
 #include "Engine/EngineTypes.h"
 #include "HealthComponent.h"
+#include "ManaComponent.h"
+#include "BaseAttributeSet.h"
 #include "Kismet/GameplayStatics.h"
 
 APlayerCharacter::APlayerCharacter()
@@ -43,6 +45,17 @@ void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	UpdateHoveredEnemy();
+
+	// Mana regeneration: 20 per second
+	if (AbilitySystemComponent && AttributeSet)
+	{
+		const float CurrentMana = AttributeSet->GetMana();
+		const float MaxMana     = AttributeSet->GetMaxMana();
+		if (CurrentMana < MaxMana)
+		{
+			AttributeSet->SetMana(FMath::Min(CurrentMana + 20.f * DeltaTime, MaxMana));
+		}
+	}
 }
 
 void APlayerCharacter::UpdateHoveredEnemy()
@@ -106,14 +119,20 @@ void APlayerCharacter::ActivateMelee()
 
 void APlayerCharacter::ActivateRanged()
 {
-	if (AbilitySystemComponent)
+	if (!AbilitySystemComponent) return;
+
+	// Check and consume 10 mana
+	if (AttributeSet)
 	{
-		AbilitySystemComponent->TryActivateAbility(RangedAbilityHandle);
-		LastAttackTime = GetWorld()->GetTimeSeconds();
-		if (RangedAttackSound)
-		{
-			UGameplayStatics::PlaySoundAtLocation(this, RangedAttackSound, GetActorLocation());
-		}
+		if (AttributeSet->GetMana() < 10.f) return;
+		AttributeSet->SetMana(AttributeSet->GetMana() - 10.f);
+	}
+
+	AbilitySystemComponent->TryActivateAbility(RangedAbilityHandle);
+	LastAttackTime = GetWorld()->GetTimeSeconds();
+	if (RangedAttackSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, RangedAttackSound, GetActorLocation());
 	}
 }
 

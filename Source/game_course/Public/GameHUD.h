@@ -43,6 +43,7 @@ public:
 private:
 	void BindPlayerHealth();
 	void SetupGlassSphereHealth();
+	void SetupGlassSphereMana();
 	void UpdateSpawnerIndicators();
 	FVector2D ClampToScreenEdge(FVector2D Dir, FVector2D Center, float EffectiveMargin) const;
 
@@ -57,6 +58,9 @@ private:
 
 	UPROPERTY()
 	class UGlassSphereHealthWidget* GlassSphereHealth;
+
+	UPROPERTY()
+	class UGlassSphereHealthWidget* GlassSphereMana;
 
 	UPROPERTY()
 	TMap<class AEnemySpawner*, class USpawnerIndicatorWidget*> SpawnerIndicators;

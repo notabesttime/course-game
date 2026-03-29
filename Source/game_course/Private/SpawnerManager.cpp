@@ -41,12 +41,23 @@ void ASpawnerManager::PlaceWave()
 		FNavLocation RandomLocation;
 		if (NavSys->GetRandomReachablePointInRadius(GetActorLocation(), SearchRadius, RandomLocation))
 		{
-			GetWorld()->SpawnActor<AEnemySpawner>(SpawnerClass, RandomLocation.Location, FRotator::ZeroRotator);
+			AEnemySpawner* Spawner = GetWorld()->SpawnActor<AEnemySpawner>(SpawnerClass, RandomLocation.Location, FRotator::ZeroRotator);
+			if (Spawner && SpawnLimitBonus > 0)
+			{
+				Spawner->MaxWarriors += SpawnLimitBonus;
+				Spawner->MaxMages    += SpawnLimitBonus;
+			}
 		}
 	}
 
-	NextWaveCount *= 2;
+	NextWaveCount = FMath::Min(NextWaveCount * 2, 16);
 	WaveNumber++;
+
+	// After wave 6, increase enemy limits by 1 each wave, capped at 16
+	if (WaveNumber > 6)
+	{
+		SpawnLimitBonus = FMath::Min(SpawnLimitBonus + 1, 16);
+	}
 
 	if (APlayerController* PC = GetWorld()->GetFirstPlayerController())
 	{

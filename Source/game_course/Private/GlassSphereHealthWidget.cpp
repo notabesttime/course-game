@@ -2,10 +2,12 @@
 
 #include "GlassSphereHealthWidget.h"
 #include "HealthComponent.h"
+#include "ManaComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Framework/Application/SlateApplication.h"
 #include "Rendering/DrawElements.h"
+#include "Rendering/SlateRenderer.h"
 #include "Styling/CoreStyle.h"
 
 // ---------------------------------------------------------------------------
@@ -222,10 +224,12 @@ void UGlassSphereHealthWidget::OnHealthChanged(float NewValue, float OldValue, f
 	HealthPercent = FMath::Clamp(HealthPercent, 0.f, 1.f);
 }
 
-FVector2D UGlassSphereHealthWidget::NativeGetDesiredSize() const
+void UGlassSphereHealthWidget::SetManaComponent(UManaComponent* InManaComponent)
 {
-	const float D = (SphereRadius + 6.f) * 2.f;
-	return FVector2D(D, D);
+	if (!InManaComponent) return;
+	const float MaxMP = InManaComponent->GetMaxMana();
+	HealthPercent = MaxMP > 0.f ? InManaComponent->GetMana() / MaxMP : 1.f;
+	InManaComponent->OnManaChanged.AddDynamic(this, &UGlassSphereHealthWidget::OnHealthChanged);
 }
 
 void UGlassSphereHealthWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
@@ -272,7 +276,7 @@ int32 UGlassSphereHealthWidget::NativePaint(const FPaintArgs& Args, const FGeome
 	const float       R      = FMath::Min(Size.X, Size.Y) * 0.5f - 4.f;
 	const FSlateRenderTransform RT = AllottedGeometry.GetAccumulatedRenderTransform();
 
-	ISlateRenderer* Renderer = FSlateApplication::Get().GetRenderer();
+	FSlateRenderer* Renderer = FSlateApplication::Get().GetRenderer();
 	if (!Renderer || R <= 0.f) return LayerId;
 
 	const FSlateBrush* WhiteBrush = FCoreStyle::Get().GetBrush("GenericWhiteBox");
@@ -291,13 +295,15 @@ int32 UGlassSphereHealthWidget::NativePaint(const FPaintArgs& Args, const FGeome
 		}
 	};
 
-	// 1. Sphere body (very dark maroon — the glass itself)
-	AddFilledCircle(Verts, Indices, RT, Center, R, FColor(8, 2, 2, 250));
+	// 1. Sphere body — dark tint of the liquid color
+	const FColor BodyColor = (LiquidColor * 0.05f).ToFColorSRGB();
+	AddFilledCircle(Verts, Indices, RT, Center, R, FColor(BodyColor.R, BodyColor.G, BodyColor.B, 250));
 	Flush(LayerId);
 
-	// 2. Liquid fill (red)
+	// 2. Liquid fill
+	const FColor FillColor = LiquidColor.ToFColorSRGB();
 	AddLiquidSegment(Verts, Indices, RT, Center, R,
-		HealthPercent, WobbleTilt, WobbleAmp, WobblePhase, FColor(195, 12, 12, 235));
+		HealthPercent, WobbleTilt, WobbleAmp, WobblePhase, FColor(FillColor.R, FillColor.G, FillColor.B, 235));
 	Flush(LayerId + 1);
 
 	// 3. Soft inner shadow to give depth to the glass

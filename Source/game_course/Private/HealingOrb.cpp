@@ -61,6 +61,9 @@ void AHealingOrb::Tick(float DeltaTime)
 				{
 					float NewHealth = FMath::Min(AttrSet->GetMaxHealth(), AttrSet->GetHealth() + HealAmount);
 					ASC->SetNumericAttributeBase(UBaseAttributeSet::GetHealthAttribute(), NewHealth);
+
+					float NewMana = FMath::Min(AttrSet->GetMaxMana(), AttrSet->GetMana() + 10.f);
+					ASC->SetNumericAttributeBase(UBaseAttributeSet::GetManaAttribute(), NewMana);
 				}
 			}
 		}

@@ -5,6 +5,7 @@
 #include "GameTimerWidget.h"
 #include "SpawnerIndicatorWidget.h"
 #include "GlassSphereHealthWidget.h"
+#include "ManaComponent.h"
 #include "EnemySpawner.h"
 #include "BaseCharacter.h"
 #include "HealthComponent.h"
@@ -21,7 +22,7 @@ void AGameHUD::BeginPlay()
 		HealthBarWidget = CreateWidget<UHealthBarWidget>(GetWorld(), HealthBarClass);
 		if (HealthBarWidget)
 		{
-			HealthBarWidget->AddToViewport();
+			HealthBarWidget->SetVisibility(ESlateVisibility::Collapsed);
 		}
 	}
 
@@ -45,6 +46,7 @@ void AGameHUD::BeginPlay()
 	// Defer one tick so the player character's BeginPlay (and BindToASC) completes first
 	GetWorldTimerManager().SetTimerForNextTick(this, &AGameHUD::BindPlayerHealth);
 	GetWorldTimerManager().SetTimerForNextTick(this, &AGameHUD::SetupGlassSphereHealth);
+	GetWorldTimerManager().SetTimerForNextTick(this, &AGameHUD::SetupGlassSphereMana);
 }
 
 void AGameHUD::Tick(float DeltaTime)
@@ -81,6 +83,9 @@ void AGameHUD::SetupGlassSphereHealth()
 
 	GlassSphereHealth->AddToViewport(3);
 
+	const float Diameter = (GlassSphereHealth->SphereRadius + 6.f) * 2.f;
+	GlassSphereHealth->SetDesiredSizeInViewport(FVector2D(Diameter, Diameter));
+
 	// Bottom-left: alignment (0,1) means the widget's bottom-left corner sits at the position
 	GlassSphereHealth->SetAlignmentInViewport(FVector2D(0.f, 1.f));
 
@@ -95,6 +100,39 @@ void AGameHUD::SetupGlassSphereHealth()
 		if (UHealthComponent* HealthComp = PlayerPawn->FindComponentByClass<UHealthComponent>())
 		{
 			GlassSphereHealth->SetHealthComponent(HealthComp);
+		}
+	}
+}
+
+void AGameHUD::SetupGlassSphereMana()
+{
+	APlayerController* PC = GetOwningPlayerController();
+	if (!PC) return;
+
+	GlassSphereMana = CreateWidget<UGlassSphereHealthWidget>(PC, UGlassSphereHealthWidget::StaticClass());
+	if (!GlassSphereMana) return;
+
+	// Blue liquid
+	GlassSphereMana->LiquidColor = FLinearColor(0.05f, 0.2f, 0.9f, 0.92f);
+
+	GlassSphereMana->AddToViewport(3);
+
+	const float Diameter = (GlassSphereMana->SphereRadius + 6.f) * 2.f;
+	GlassSphereMana->SetDesiredSizeInViewport(FVector2D(Diameter, Diameter));
+
+	// Bottom-right: alignment (1,1) means widget's bottom-right corner sits at the position
+	GlassSphereMana->SetAlignmentInViewport(FVector2D(1.f, 1.f));
+
+	int32 ViewW, ViewH;
+	PC->GetViewportSize(ViewW, ViewH);
+	GlassSphereMana->SetPositionInViewport(FVector2D((float)ViewW - 20.f, (float)ViewH - 20.f));
+
+	APawn* PlayerPawn = PC->GetPawn();
+	if (PlayerPawn)
+	{
+		if (UManaComponent* ManaComp = PlayerPawn->FindComponentByClass<UManaComponent>())
+		{
+			GlassSphereMana->SetManaComponent(ManaComp);
 		}
 	}
 }

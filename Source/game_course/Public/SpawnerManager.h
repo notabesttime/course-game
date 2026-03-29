@@ -35,4 +35,5 @@ private:
 	FTimerHandle SpawnTimerHandle;
 	int32 NextWaveCount = 1;
 	int32 WaveNumber = 1;
+	int32 SpawnLimitBonus = 0;
 };

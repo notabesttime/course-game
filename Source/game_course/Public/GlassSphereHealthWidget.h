@@ -13,17 +13,20 @@ class GAME_COURSE_API UGlassSphereHealthWidget : public UUserWidget
 
 public:
 	void SetHealthComponent(class UHealthComponent* InHealthComponent);
+	void SetManaComponent(class UManaComponent* InManaComponent);
+
+	UPROPERTY(EditAnywhere, Category = "Sphere")
+	float SphereRadius = 50.f;
+
+	// Color of the liquid (red for health, blue for mana, etc.)
+	UPROPERTY(EditAnywhere, Category = "Sphere")
+	FLinearColor LiquidColor = FLinearColor(0.76f, 0.05f, 0.05f, 0.92f);
 
 protected:
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 	virtual int32 NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry,
 		const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements,
 		int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
-	virtual FVector2D NativeGetDesiredSize() const override;
-
-	// Radius of the sphere in pixels
-	UPROPERTY(EditDefaultsOnly, Category = "Sphere")
-	float SphereRadius = 50.f;
 
 	// How strongly the liquid springs back to flat
 	UPROPERTY(EditDefaultsOnly, Category = "Sphere|Wobble")

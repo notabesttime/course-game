@@ -41,4 +41,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health")
 	class UHealthComponent* HealthComponent;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mana")
+	class UManaComponent* ManaComponent;
+
 };

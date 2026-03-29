@@ -14,6 +14,14 @@ class GAME_COURSE_API AEnemySpawner : public ABaseEnemy
 public:
 	AEnemySpawner();
 
+	// Maximum warriors allowed in the level at once
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawner|Limits")
+	int32 MaxWarriors = 20;
+
+	// Maximum mages allowed in the level at once
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawner|Limits")
+	int32 MaxMages = 10;
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
@@ -39,14 +47,6 @@ protected:
 	// Blueprint subclass of MinionMage to spawn
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawner")
 	TSubclassOf<class AMinionMage> MageClass;
-
-	// Maximum warriors allowed in the level at once
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawner|Limits")
-	int32 MaxWarriors = 15;
-
-	// Maximum mages allowed in the level at once
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawner|Limits")
-	int32 MaxMages = 5;
 
 	// Seconds between spawn attempts
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawner")
