@@ -231,6 +231,7 @@ void APlayerCharacter::DebugDie()
 		// Force health to 0, which triggers OnHealthChanged → full death flow
 		if (AbilitySystemComponent)
 		{
+			bForceDebugDeath = true;
 			AbilitySystemComponent->SetNumericAttributeBase(
 				UBaseAttributeSet::GetHealthAttribute(), 0.f);
 		}
@@ -291,7 +292,7 @@ void APlayerCharacter::DeactivateTimeSlow()
 void APlayerCharacter::OnHealthChanged(float NewValue, float OldValue, float MaxValue)
 {
 	// Shield blocks all damage — restore health back to pre-hit value
-	if (ShieldComponent && ShieldComponent->IsShieldActive() && NewValue < OldValue)
+	if (!bForceDebugDeath && ShieldComponent && ShieldComponent->IsShieldActive() && NewValue < OldValue)
 	{
 		if (AbilitySystemComponent && AttributeSet)
 		{
@@ -303,6 +304,7 @@ void APlayerCharacter::OnHealthChanged(float NewValue, float OldValue, float Max
 
 	if (NewValue <= 0.0f)
 	{
+		bForceDebugDeath = false;
 		DeactivateTimeSlow();
 
 		if (DeathSound)

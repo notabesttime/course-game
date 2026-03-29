@@ -95,6 +95,7 @@ private:
 	float LastAttackTime = -10.f;
 	float LastHoverUpdateTime = -1.f;
 	bool bTimeSlowActive = false;
+	bool bForceDebugDeath = false;
 
 	TArray<TEnumAsByte<EObjectTypeQuery>> HoverObjectTypes;
 
