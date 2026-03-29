@@ -78,19 +78,20 @@ void ASpawnerManager::PlaceWave()
 		if (bFound)
 		{
 			PlacedLocations.Add(RandomLocation.Location);
-			// Offset Z by capsule half-height so the spawner sits on the ground, not in it
-			FVector SpawnLocation = RandomLocation.Location + FVector(0.f, 0.f, 88.f);
-			AEnemySpawner* Spawner = GetWorld()->SpawnActor<AEnemySpawner>(SpawnerClass, SpawnLocation, FRotator::ZeroRotator);
-			if (Spawner && SpawnLimitBonus > 0)
-			{
-				Spawner->MaxWarriors += SpawnLimitBonus;
-				Spawner->MaxMages    += SpawnLimitBonus;
-			}
+			// Queue for drip-spawning instead of spawning all at once
+			PendingSpawnLocations.Add(RandomLocation.Location + FVector(0.f, 0.f, 88.f));
 		}
 	}
 
 	NextWaveCount = FMath::Min(NextWaveCount * 2, 16);
 	WaveNumber++;
+
+	// Drip-spawn one spawner every 0.05s to avoid a single-frame hitch
+	if (PendingSpawnLocations.Num() > 0)
+	{
+		GetWorldTimerManager().SetTimer(
+			DripTimerHandle, this, &ASpawnerManager::SpawnNextPending, 0.05f, true, 0.0f);
+	}
 
 	// After wave 6, increase enemy limits by 1 each wave, capped at 16
 	if (WaveNumber > 6)
@@ -107,5 +108,29 @@ void ASpawnerManager::PlaceWave()
 				TimerWidget->StartFlash(WaveNumber);
 			}
 		}
+	}
+}
+
+void ASpawnerManager::SpawnNextPending()
+{
+	if (PendingSpawnLocations.Num() == 0)
+	{
+		GetWorldTimerManager().ClearTimer(DripTimerHandle);
+		return;
+	}
+
+	FVector SpawnLocation = PendingSpawnLocations[0];
+	PendingSpawnLocations.RemoveAt(0);
+
+	AEnemySpawner* Spawner = GetWorld()->SpawnActor<AEnemySpawner>(SpawnerClass, SpawnLocation, FRotator::ZeroRotator);
+	if (Spawner && SpawnLimitBonus > 0)
+	{
+		Spawner->MaxWarriors += SpawnLimitBonus;
+		Spawner->MaxMages    += SpawnLimitBonus;
+	}
+
+	if (PendingSpawnLocations.Num() == 0)
+	{
+		GetWorldTimerManager().ClearTimer(DripTimerHandle);
 	}
 }

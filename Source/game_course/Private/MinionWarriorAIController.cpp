@@ -21,8 +21,8 @@ void AMinionWarriorAIController::OnPossess(APawn* InPawn)
 		this,
 		&AMinionWarriorAIController::UpdateMovement,
 		MoveUpdateInterval,
-		true,   // looping
-		0.0f    // start immediately
+		true,
+		FMath::FRandRange(0.1f, MoveUpdateInterval)  // stagger to avoid all-at-once pathfinding
 	);
 }
 

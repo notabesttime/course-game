@@ -21,7 +21,7 @@ void AMinionMageAIController::OnPossess(APawn* InPawn)
 		&AMinionMageAIController::UpdateMovement,
 		MoveUpdateInterval,
 		true,
-		0.0f
+		FMath::FRandRange(0.1f, MoveUpdateInterval)  // stagger to avoid all-at-once pathfinding
 	);
 }
 

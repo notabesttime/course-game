@@ -20,7 +20,7 @@ void AMinionBruteAIController::OnPossess(APawn* InPawn)
 		&AMinionBruteAIController::UpdateMovement,
 		MoveUpdateInterval,
 		true,
-		0.0f
+		FMath::FRandRange(0.1f, MoveUpdateInterval)  // stagger to avoid all-at-once pathfinding
 	);
 }
 

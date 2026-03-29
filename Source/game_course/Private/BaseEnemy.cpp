@@ -28,7 +28,16 @@ ABaseEnemy::ABaseEnemy()
 void ABaseEnemy::CreateHighlightMaterial()
 {
 #if WITH_EDITOR
-	UMaterial* Mat = NewObject<UMaterial>(this, NAME_None, RF_Transient);
+	// Cache a single material across all enemy instances so PostEditChange()
+	// (shader compilation) only runs once instead of per-spawn.
+	static TWeakObjectPtr<UMaterial> CachedMat;
+	if (CachedMat.IsValid())
+	{
+		HighlightMaterial = CachedMat.Get();
+		return;
+	}
+
+	UMaterial* Mat = NewObject<UMaterial>(GetTransientPackage(), NAME_None, RF_Transient);
 
 	UMaterialExpressionConstant4Vector* ColorExpr = NewObject<UMaterialExpressionConstant4Vector>(Mat);
 	ColorExpr->Constant = FLinearColor(1.0f, 0.0f, 0.0f, 1.0f); // red
@@ -37,8 +46,9 @@ void ABaseEnemy::CreateHighlightMaterial()
 	Mat->GetEditorOnlyData()->EmissiveColor.Expression = ColorExpr;
 	Mat->BlendMode = BLEND_Additive;
 	Mat->bUsedWithSkeletalMesh = true;
-	Mat->PostEditChange(); // triggers shader compilation
+	Mat->PostEditChange(); // triggers shader compilation — only once now
 
+	CachedMat = Mat;
 	HighlightMaterial = Mat;
 #endif
 }

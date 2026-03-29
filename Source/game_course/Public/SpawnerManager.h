@@ -35,8 +35,11 @@ protected:
 
 private:
 	void PlaceWave();
+	void SpawnNextPending();
 
 	FTimerHandle SpawnTimerHandle;
+	FTimerHandle DripTimerHandle;
+	TArray<FVector> PendingSpawnLocations;
 	int32 NextWaveCount = 2;
 	int32 WaveNumber = 1;
 	int32 SpawnLimitBonus = 0;

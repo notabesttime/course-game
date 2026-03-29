@@ -158,17 +158,26 @@ void AEnemySpawner::TrySpawn()
 		LiveWarriorCount++;
 	}
 
-	if (MageClass && Mages < MaxMages && Mages * 2 < Warriors)
-	{
-		FActorSpawnParameters Params;
-		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-		GetWorld()->SpawnActor<AMinionMage>(MageClass, SpawnTransform, Params);
-		bSpawned = true;
-		LiveMageCount++;
-	}
-
 	if (bSpawned && SpawnSound)
 	{
 		UGameplayStatics::PlaySoundAtLocation(this, SpawnSound, GetActorLocation(), 0.25f);
+	}
+
+	// Defer mage spawn to next frame to avoid 2 enemy spawns in one frame
+	if (MageClass && Mages < MaxMages && Mages * 2 < Warriors)
+	{
+		FTimerHandle MageDeferHandle;
+		GetWorldTimerManager().SetTimer(MageDeferHandle, [this, SpawnTransform]()
+		{
+			if (!MageClass) return;
+			FActorSpawnParameters Params;
+			Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+			GetWorld()->SpawnActor<AMinionMage>(MageClass, SpawnTransform, Params);
+			LiveMageCount++;
+			if (SpawnSound)
+			{
+				UGameplayStatics::PlaySoundAtLocation(this, SpawnSound, GetActorLocation(), 0.25f);
+			}
+		}, 0.05f, false);
 	}
 }
