@@ -20,13 +20,30 @@ void UCameraOcclusionComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	AActor* Owner = GetOwner();
 	if (!Owner) return;
 
-	APlayerController* PC = Cast<APlayerController>(
-		Cast<APawn>(Owner) ? Cast<APawn>(Owner)->GetController() : nullptr);
-	if (!PC) return;
+	// Cache player controller — only cast once
+	if (!CachedPC)
+	{
+		if (APawn* OwnerPawn = Cast<APawn>(Owner))
+		{
+			CachedPC = Cast<APlayerController>(OwnerPawn->GetController());
+		}
+	}
+	if (!CachedPC) return;
+
+	const float Now = GetWorld()->GetTimeSeconds();
+	const float Target = bWasOccluded ? OccludedOpacity : 1.f;
+	const bool bOpacitySettled = FMath::IsNearlyEqual(CurrentOpacity, Target, 0.01f);
+
+	// Skip trace when opacity has settled — only re-check at 10Hz
+	if (bOpacitySettled && (Now - LastTraceTime) < 0.1f)
+	{
+		return;
+	}
+	LastTraceTime = Now;
 
 	FVector CamLoc;
 	FRotator CamRot;
-	PC->GetPlayerViewPoint(CamLoc, CamRot);
+	CachedPC->GetPlayerViewPoint(CamLoc, CamRot);
 
 	TArray<FHitResult> Hits;
 	FCollisionQueryParams Params;
@@ -35,11 +52,11 @@ void UCameraOcclusionComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 		ECC_Camera, Params);
 
 	const bool bOccluded = Hits.Num() > 0;
-	const float Target = bOccluded ? OccludedOpacity : 1.f;
+	const float NewTarget = bOccluded ? OccludedOpacity : 1.f;
 
-	if (bOccluded != bWasOccluded || !FMath::IsNearlyEqual(CurrentOpacity, Target, 0.001f))
+	if (bOccluded != bWasOccluded || !FMath::IsNearlyEqual(CurrentOpacity, NewTarget, 0.001f))
 	{
-		CurrentOpacity = FMath::FInterpTo(CurrentOpacity, Target, DeltaTime, FadeSpeed);
+		CurrentOpacity = FMath::FInterpTo(CurrentOpacity, NewTarget, DeltaTime, FadeSpeed);
 		UKismetMaterialLibrary::SetScalarParameterValue(
 			GetWorld(), OcclusionMPC, OpacityParamName, CurrentOpacity);
 	}

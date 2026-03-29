@@ -4,6 +4,7 @@
 #include "PlayerMeleeAbility.h"
 #include "PlayerRangedAbility.h"
 #include "BaseEnemy.h"
+#include "EnemySpawner.h"
 #include "AbilitySystemComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -57,29 +58,32 @@ void APlayerCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	UpdateHoveredEnemy();
 
-	// Time slow mana drain: 30 per second (DeltaTime is unscaled for player due to counter-dilation)
-	if (bTimeSlowActive && AbilitySystemComponent && AttributeSet)
+	// Mana drain (time slow) or regen — single pass
+	if (AbilitySystemComponent && AttributeSet)
 	{
-		float NewMana = AttributeSet->GetMana() - 30.f * DeltaTime;
-		if (NewMana <= 0.f)
+		const float CurrentMana = AttributeSet->GetMana();
+		float NewMana = CurrentMana;
+
+		if (bTimeSlowActive)
 		{
-			AttributeSet->SetMana(0.f);
-			DeactivateTimeSlow();
+			NewMana -= 30.f * DeltaTime;
+			if (NewMana <= 0.f)
+			{
+				AttributeSet->SetMana(0.f);
+				DeactivateTimeSlow();
+			}
+			else
+			{
+				AttributeSet->SetMana(NewMana);
+			}
 		}
 		else
 		{
-			AttributeSet->SetMana(NewMana);
-		}
-	}
-
-	// Mana regeneration: 20 per second (suppressed while time slow is draining mana)
-	if (!bTimeSlowActive && AbilitySystemComponent && AttributeSet)
-	{
-		const float CurrentMana = AttributeSet->GetMana();
-		const float MaxMana     = AttributeSet->GetMaxMana();
-		if (CurrentMana < MaxMana)
-		{
-			AttributeSet->SetMana(FMath::Min(CurrentMana + 20.f * DeltaTime, MaxMana));
+			const float MaxMana = AttributeSet->GetMaxMana();
+			if (CurrentMana < MaxMana)
+			{
+				AttributeSet->SetMana(FMath::Min(CurrentMana + 20.f * DeltaTime, MaxMana));
+			}
 		}
 	}
 }
@@ -91,27 +95,32 @@ void APlayerCharacter::UpdateHoveredEnemy()
 	if (Now - LastHoverUpdateTime < 0.05f) return;
 	LastHoverUpdateTime = Now;
 
-	ABaseEnemy* NewHovered = nullptr;
+	AActor* NewHovered = nullptr;
 
 	if (APlayerController* PC = Cast<APlayerController>(GetController()))
 	{
 		FHitResult HitResult;
 		if (PC->GetHitResultUnderCursorForObjects(HoverObjectTypes, false, HitResult))
 		{
-			NewHovered = Cast<ABaseEnemy>(HitResult.GetActor());
+			AActor* Hit = HitResult.GetActor();
+			if (Hit && (Hit->IsA<ABaseEnemy>() || Hit->IsA<AEnemySpawner>()))
+			{
+				NewHovered = Hit;
+			}
 		}
 	}
 
 	if (NewHovered != HoveredEnemy)
 	{
-		if (HoveredEnemy)
+		// Highlight only works on ABaseEnemy (has mesh); spawners don't highlight
+		if (ABaseEnemy* OldEnemy = Cast<ABaseEnemy>(HoveredEnemy))
 		{
-			HoveredEnemy->StopHighlight();
+			OldEnemy->StopHighlight();
 		}
 		HoveredEnemy = NewHovered;
-		if (HoveredEnemy)
+		if (ABaseEnemy* NewEnemy = Cast<ABaseEnemy>(HoveredEnemy))
 		{
-			HoveredEnemy->StartHighlight();
+			NewEnemy->StartHighlight();
 		}
 	}
 }

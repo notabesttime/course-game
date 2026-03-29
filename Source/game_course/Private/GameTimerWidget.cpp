@@ -39,20 +39,28 @@ void UGameTimerWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime
 	// Shield label
 	if (ShieldLabel)
 	{
-		APlayerCharacter* Player = Cast<APlayerCharacter>(
-			UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
-		UPlayerShieldComponent* Shield = Player
-			? Player->GetShieldComponent() : nullptr;
+		if (!CachedPlayer)
+		{
+			CachedPlayer = Cast<APlayerCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
+		}
+		UPlayerShieldComponent* Shield = CachedPlayer ? CachedPlayer->GetShieldComponent() : nullptr;
 
 		if (Shield && Shield->IsShieldActive())
 		{
 			float Remaining = Shield->GetShieldTimeRemaining();
-			ShieldLabel->SetText(FText::FromString(
-				FString::Printf(TEXT("Shield: %.1fs"), Remaining)));
+			// Only reformat and set text when the displayed value changes by 0.1s
+			float RoundedRemaining = FMath::RoundToFloat(Remaining * 10.f) / 10.f;
+			if (!FMath::IsNearlyEqual(RoundedRemaining, LastDisplayedShieldTime, 0.05f))
+			{
+				ShieldLabel->SetText(FText::FromString(
+					FString::Printf(TEXT("Shield: %.1fs"), RoundedRemaining)));
+				LastDisplayedShieldTime = RoundedRemaining;
+			}
 			ShieldLabel->SetVisibility(ESlateVisibility::HitTestInvisible);
 		}
 		else
 		{
+			LastDisplayedShieldTime = -1.f;
 			ShieldLabel->SetVisibility(ESlateVisibility::Collapsed);
 		}
 	}
@@ -64,7 +72,13 @@ void UGameTimerWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime
 
 	if (TimerText)
 	{
-		TimerText->SetText(FText::FromString(FString::Printf(TEXT("%.1f"), ElapsedTime)));
+		// Only reformat when the displayed value changes (0.1s resolution)
+		float RoundedTime = FMath::RoundToFloat(ElapsedTime * 10.f) / 10.f;
+		if (!FMath::IsNearlyEqual(RoundedTime, LastDisplayedTime, 0.05f))
+		{
+			TimerText->SetText(FText::FromString(FString::Printf(TEXT("%.1f"), RoundedTime)));
+			LastDisplayedTime = RoundedTime;
+		}
 
 		if (bFlashing)
 		{

@@ -100,4 +100,6 @@ private:
 	FTimerHandle AttackCooldownTimer;
 
 	ECompanionAnimState CurrentAnimState = ECompanionAnimState::Idle;
+
+	float LastTargetSearchTime = -1.f;
 };

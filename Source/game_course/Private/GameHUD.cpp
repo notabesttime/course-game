@@ -163,6 +163,20 @@ void AGameHUD::UpdateSpawnerIndicators()
 		}
 	}
 
+	// Cache camera and viewport data once for all spawners this frame
+	int32 ViewW, ViewH;
+	PC->GetViewportSize(ViewW, ViewH);
+	const FVector2D ViewportSize(ViewW, ViewH);
+	const FVector2D Center = ViewportSize * 0.5f;
+
+	FVector CamLoc;
+	FRotator CamRot;
+	PC->GetPlayerViewPoint(CamLoc, CamRot);
+	const FMatrix CamMatrix = FRotationMatrix(CamRot);
+	const FVector CamForward = CamMatrix.GetScaledAxis(EAxis::X);
+	const FVector CamRight   = CamMatrix.GetScaledAxis(EAxis::Y);
+	const FVector CamUp      = CamMatrix.GetScaledAxis(EAxis::Z);
+
 	// Create indicators for new spawners, update positions for all
 	for (TActorIterator<AEnemySpawner> It(GetWorld()); It; ++It)
 	{
@@ -186,24 +200,10 @@ void AGameHUD::UpdateSpawnerIndicators()
 			continue;
 		}
 
-		int32 ViewW, ViewH;
-		PC->GetViewportSize(ViewW, ViewH);
-		FVector2D ViewportSize(ViewW, ViewH);
-		FVector2D Center = ViewportSize * 0.5f;
-
 		// Project offset location (used for on-screen icon placement)
 		FVector SpawnerOffsetLoc = Spawner->GetActorLocation() + FVector(0.f, 0.f, IndicatorHeightOffset);
 		FVector2D OffsetScreenPos;
 		PC->ProjectWorldLocationToScreen(SpawnerOffsetLoc, OffsetScreenPos);
-
-		// Camera axes for stable off-screen direction
-		FVector CamLoc;
-		FRotator CamRot;
-		PC->GetPlayerViewPoint(CamLoc, CamRot);
-		FMatrix CamMatrix = FRotationMatrix(CamRot);
-		FVector CamForward = CamMatrix.GetScaledAxis(EAxis::X);
-		FVector CamRight   = CamMatrix.GetScaledAxis(EAxis::Y);
-		FVector CamUp      = CamMatrix.GetScaledAxis(EAxis::Z);
 
 		FVector ToTarget = (SpawnerOffsetLoc - CamLoc).GetSafeNormal();
 		bool bBehind = FVector::DotProduct(CamForward, ToTarget) < 0.f;

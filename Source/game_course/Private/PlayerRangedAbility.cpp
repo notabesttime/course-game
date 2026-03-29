@@ -3,7 +3,6 @@
 #include "PlayerRangedAbility.h"
 #include "PlayerAbilityProjectile.h"
 #include "PlayerCharacter.h"
-#include "BaseEnemy.h"
 #include "GameFramework/PlayerController.h"
 
 UPlayerRangedAbility::UPlayerRangedAbility()
@@ -31,7 +30,7 @@ void UPlayerRangedAbility::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 	FVector FireDirection = AvatarActor->GetActorForwardVector();
 	if (APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(AvatarActor))
 	{
-		if (ABaseEnemy* Target = PlayerChar->GetHoveredEnemy())
+		if (AActor* Target = PlayerChar->GetHoveredEnemy())
 		{
 			FVector ToTarget = Target->GetActorLocation() - AvatarActor->GetActorLocation();
 			FireDirection = ToTarget.GetSafeNormal();

@@ -59,10 +59,10 @@ void ABaseCompanion::UpdateBehavior()
 		return;
 	}
 
-	float DistToPlayer = FVector::Dist(GetActorLocation(), PlayerOwner->GetActorLocation());
+	float DistToPlayerSq = FVector::DistSquared(GetActorLocation(), PlayerOwner->GetActorLocation());
 
 	// Too far from player — follow them, ignore enemies
-	if (DistToPlayer > FollowDistance)
+	if (DistToPlayerSq > FollowDistance * FollowDistance)
 	{
 		CurrentTarget = nullptr;
 		AIC->MoveToActor(PlayerOwner, 100.f);
@@ -75,17 +75,22 @@ void ABaseCompanion::UpdateBehavior()
 		CurrentTarget = nullptr;
 	}
 
-	// Find new target if we don't have one
+	// Find new target if we don't have one — throttled to 4Hz
 	if (!CurrentTarget)
 	{
-		CurrentTarget = FindNearestEnemy();
+		const float Now = GetWorld()->GetTimeSeconds();
+		if (Now - LastTargetSearchTime >= 0.25f)
+		{
+			CurrentTarget = FindNearestEnemy();
+			LastTargetSearchTime = Now;
+		}
 	}
 
 	if (CurrentTarget)
 	{
-		float DistToEnemy = FVector::Dist(GetActorLocation(), CurrentTarget->GetActorLocation());
+		float DistToEnemySq = FVector::DistSquared(GetActorLocation(), CurrentTarget->GetActorLocation());
 
-		if (DistToEnemy <= AttackRange)
+		if (DistToEnemySq <= AttackRange * AttackRange)
 		{
 			AIC->StopMovement();
 			if (!bAttackOnCooldown)
@@ -116,7 +121,8 @@ ABaseEnemy* ABaseCompanion::FindNearestEnemy() const
 	);
 
 	ABaseEnemy* Nearest = nullptr;
-	float NearestDist = FLT_MAX;
+	float NearestDistSq = FLT_MAX;
+	const FVector MyLoc = GetActorLocation();
 
 	for (const FOverlapResult& Overlap : Overlaps)
 	{
@@ -126,10 +132,10 @@ ABaseEnemy* ABaseCompanion::FindNearestEnemy() const
 			continue;
 		}
 
-		float Dist = FVector::Dist(GetActorLocation(), Enemy->GetActorLocation());
-		if (Dist < NearestDist)
+		float DistSq = FVector::DistSquared(MyLoc, Enemy->GetActorLocation());
+		if (DistSq < NearestDistSq)
 		{
-			NearestDist = Dist;
+			NearestDistSq = DistSq;
 			Nearest = Enemy;
 		}
 	}

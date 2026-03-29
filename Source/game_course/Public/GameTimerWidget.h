@@ -40,9 +40,14 @@ protected:
 
 private:
 	float ElapsedTime = 0.f;
+	float LastDisplayedTime = -1.f;
+	float LastDisplayedShieldTime = -1.f;
 	bool bFlashing = false;
 	bool bStopped = false;
 	float FlashTimeRemaining = 0.f;
+
+	UPROPERTY()
+	class APlayerCharacter* CachedPlayer = nullptr;
 
 	UPROPERTY()
 	class UWaveAnnouncementWidget* ActiveAnnouncement = nullptr;

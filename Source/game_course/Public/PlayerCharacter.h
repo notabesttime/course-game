@@ -17,8 +17,10 @@ class GAME_COURSE_API APlayerCharacter : public ABaseCharacter
 public:
 	APlayerCharacter();
 
+	// Returns the currently hovered enemy or spawner (any damageable actor under the cursor)
 	UFUNCTION(BlueprintPure, Category = "Combat")
-	ABaseEnemy* GetHoveredEnemy() const { return HoveredEnemy; }
+	AActor* GetHoveredEnemy() const { return HoveredEnemy; }
+
 
 protected:
 	virtual void BeginPlay() override;
@@ -100,5 +102,5 @@ private:
 	FGameplayAbilitySpecHandle RangedAbilityHandle;
 
 	UPROPERTY()
-	ABaseEnemy* HoveredEnemy = nullptr;
+	AActor* HoveredEnemy = nullptr;
 };

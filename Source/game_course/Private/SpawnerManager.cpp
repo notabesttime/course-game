@@ -78,7 +78,9 @@ void ASpawnerManager::PlaceWave()
 		if (bFound)
 		{
 			PlacedLocations.Add(RandomLocation.Location);
-			AEnemySpawner* Spawner = GetWorld()->SpawnActor<AEnemySpawner>(SpawnerClass, RandomLocation.Location, FRotator::ZeroRotator);
+			// Offset Z by capsule half-height so the spawner sits on the ground, not in it
+			FVector SpawnLocation = RandomLocation.Location + FVector(0.f, 0.f, 88.f);
+			AEnemySpawner* Spawner = GetWorld()->SpawnActor<AEnemySpawner>(SpawnerClass, SpawnLocation, FRotator::ZeroRotator);
 			if (Spawner && SpawnLimitBonus > 0)
 			{
 				Spawner->MaxWarriors += SpawnLimitBonus;

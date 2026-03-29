@@ -2,6 +2,7 @@
 
 #include "PlayerAbilityProjectile.h"
 #include "BaseEnemy.h"
+#include "EnemySpawner.h"
 #include "BaseAttributeSet.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemInterface.h"
@@ -39,8 +40,8 @@ void APlayerAbilityProjectile::OnOverlapBegin(UPrimitiveComponent* OverlappedCom
 		return;
 	}
 
-	// Only detonate on enemy contact
-	if (!OtherActor->IsA<ABaseEnemy>())
+	// Only detonate on enemy or spawner contact
+	if (!OtherActor->IsA<ABaseEnemy>() && !OtherActor->IsA<AEnemySpawner>())
 	{
 		return;
 	}
@@ -74,7 +75,7 @@ void APlayerAbilityProjectile::ApplyAoEDamage(FVector Origin)
 	for (const FOverlapResult& Overlap : Overlaps)
 	{
 		AActor* HitActor = Overlap.GetActor();
-		if (!HitActor || !HitActor->IsA<ABaseEnemy>() || DamagedActors.Contains(HitActor))
+		if (!HitActor || (!HitActor->IsA<ABaseEnemy>() && !HitActor->IsA<AEnemySpawner>()) || DamagedActors.Contains(HitActor))
 		{
 			continue;
 		}

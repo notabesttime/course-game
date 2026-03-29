@@ -2,6 +2,7 @@
 
 #include "PlayerMeleeAbility.h"
 #include "BaseEnemy.h"
+#include "EnemySpawner.h"
 #include "BaseAttributeSet.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemInterface.h"
@@ -78,7 +79,7 @@ TArray<FVector> UPlayerMeleeAbility::ApplyDamageInRadius(AActor* AvatarActor) co
 	for (const FOverlapResult& Overlap : Overlaps)
 	{
 		AActor* HitActor = Overlap.GetActor();
-		if (!HitActor || !HitActor->IsA<ABaseEnemy>() || DamagedActors.Contains(HitActor))
+		if (!HitActor || (!HitActor->IsA<ABaseEnemy>() && !HitActor->IsA<AEnemySpawner>()) || DamagedActors.Contains(HitActor))
 		{
 			continue;
 		}

@@ -37,4 +37,8 @@ public:
 private:
 	float CurrentOpacity = 1.f;
 	bool bWasOccluded = false;
+	float LastTraceTime = -1.f;
+
+	UPROPERTY()
+	APlayerController* CachedPC = nullptr;
 };
