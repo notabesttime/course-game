@@ -91,4 +91,8 @@ private:
 	FTimerHandle AttackCooldownTimer;
 	bool bHealOnCooldown = false;
 	FTimerHandle HealCooldownTimer;
+	FTimerHandle HealSearchTimer;
+
+	UPROPERTY()
+	class APlayerCharacter* CachedPlayer = nullptr;
 };

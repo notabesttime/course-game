@@ -2,6 +2,7 @@
 
 #include "MinionWarrior.h"
 #include "MinionWarriorAIController.h"
+#include "EnemySpawner.h"
 #include "PlayerCharacter.h"
 #include "BaseAttributeSet.h"
 #include "AbilitySystemComponent.h"
@@ -32,6 +33,8 @@ void AMinionWarrior::BeginPlay()
 	}
 
 	GetMesh()->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
+
+	CachedPlayer = Cast<APlayerCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
 
 	if (GetMesh()->GetSkeletalMeshAsset())
 	{
@@ -103,21 +106,22 @@ void AMinionWarrior::SetAnimState(EWarriorAnimState NewState)
 	}
 }
 
+void AMinionWarrior::OnDied()
+{
+	AEnemySpawner::LiveWarriorCount = FMath::Max(0, AEnemySpawner::LiveWarriorCount - 1);
+}
+
 void AMinionWarrior::TryAttackPlayer()
 {
-	if (bAttackOnCooldown)
+	if (bAttackOnCooldown || !CachedPlayer)
 	{
 		return;
 	}
 
-	APlayerCharacter* Player = Cast<APlayerCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
-	if (!Player || !IsValid(Player))
-	{
-		return;
-	}
+	APlayerCharacter* Player = CachedPlayer;
 
-	float DistToPlayer = FVector::Dist(GetActorLocation(), Player->GetActorLocation());
-	if (DistToPlayer > AttackRange)
+	float DistSq = FVector::DistSquared(GetActorLocation(), Player->GetActorLocation());
+	if (DistSq > AttackRange * AttackRange)
 	{
 		return;
 	}

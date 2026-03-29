@@ -3,6 +3,7 @@
 #include "MinionMage.h"
 #include "MinionMageAIController.h"
 #include "MinionMageProjectile.h"
+#include "EnemySpawner.h"
 #include "PlayerCharacter.h"
 #include "PlayerShieldComponent.h"
 #include "BaseEnemy.h"
@@ -41,6 +42,12 @@ void AMinionMage::BeginPlay()
 		SetAnimState(EMageAnimState::Idle);
 	}
 
+	CachedPlayer = Cast<APlayerCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
+
+	// Heal search runs at 4Hz instead of every frame
+	GetWorldTimerManager().SetTimer(
+		HealSearchTimer, this, &AMinionMage::TryHealAlly, 0.25f, true);
+
 	// Stagger first shot so mages spawned together don't all fire at once
 	bAttackOnCooldown = true;
 	GetWorldTimerManager().SetTimer(
@@ -56,7 +63,7 @@ void AMinionMage::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	UpdateAnimations();
 	TryAttackPlayer();
-	TryHealAlly();
+	// TryHealAlly is called by HealSearchTimer at 4Hz
 }
 
 void AMinionMage::UpdateAnimations()
@@ -108,19 +115,15 @@ void AMinionMage::SetAnimState(EMageAnimState NewState)
 
 void AMinionMage::TryAttackPlayer()
 {
-	if (bAttackOnCooldown || !ProjectileClass)
+	if (bAttackOnCooldown || !ProjectileClass || !CachedPlayer)
 	{
 		return;
 	}
 
-	APlayerCharacter* Player = Cast<APlayerCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
-	if (!Player || !IsValid(Player))
-	{
-		return;
-	}
+	APlayerCharacter* Player = CachedPlayer;
 
-	float DistToPlayer = FVector::Dist(GetActorLocation(), Player->GetActorLocation());
-	if (DistToPlayer > AttackRange)
+	float DistSq = FVector::DistSquared(GetActorLocation(), Player->GetActorLocation());
+	if (DistSq > AttackRange * AttackRange)
 	{
 		return;
 	}
@@ -166,11 +169,11 @@ void AMinionMage::TryAttackPlayer()
 
 void AMinionMage::OnDied()
 {
-	APlayerCharacter* Player = Cast<APlayerCharacter>(
-		UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
-	if (Player)
+	AEnemySpawner::LiveMageCount = FMath::Max(0, AEnemySpawner::LiveMageCount - 1);
+
+	if (CachedPlayer)
 	{
-		if (UPlayerShieldComponent* Shield = Player->GetShieldComponent())
+		if (UPlayerShieldComponent* Shield = CachedPlayer->GetShieldComponent())
 		{
 			Shield->ActivateShield();
 		}

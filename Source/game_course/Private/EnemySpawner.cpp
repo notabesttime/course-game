@@ -7,7 +7,10 @@
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystem.h"
 
-int32 AEnemySpawner::TotalSpawnCount = 0;
+int32 AEnemySpawner::TotalSpawnCount  = 0;
+int32 AEnemySpawner::LiveWarriorCount = 0;
+int32 AEnemySpawner::LiveMageCount    = 0;
+int32 AEnemySpawner::LiveBruteCount   = 0;
 
 AEnemySpawner::AEnemySpawner()
 {
@@ -46,32 +49,11 @@ void AEnemySpawner::BeginPlay()
 	);
 }
 
-int32 AEnemySpawner::CountWarriors() const
-{
-	TArray<AActor*> Found;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AMinionWarrior::StaticClass(), Found);
-	return Found.Num();
-}
-
-int32 AEnemySpawner::CountMages() const
-{
-	TArray<AActor*> Found;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AMinionMage::StaticClass(), Found);
-	return Found.Num();
-}
-
-int32 AEnemySpawner::CountBrutes() const
-{
-	TArray<AActor*> Found;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AMinionBrute::StaticClass(), Found);
-	return Found.Num();
-}
-
 void AEnemySpawner::TrySpawn()
 {
-	const int32 Warriors = CountWarriors();
-	const int32 Mages = CountMages();
-	const int32 Brutes = CountBrutes();
+	const int32 Warriors = LiveWarriorCount;
+	const int32 Mages    = LiveMageCount;
+	const int32 Brutes   = LiveBruteCount;
 
 	// Spawn transform: offset slightly so multiple enemies don't stack on the exact same point
 	FVector SpawnOffset(FMath::FRandRange(-80.f, 80.f), FMath::FRandRange(-80.f, 80.f), 0.f);
@@ -89,6 +71,7 @@ void AEnemySpawner::TrySpawn()
 		GetWorld()->SpawnActor<AMinionBrute>(BruteClass, SpawnTransform, Params);
 		bSpawned = true;
 		TotalSpawnCount++;
+		LiveBruteCount++;
 	}
 	else if (WarriorClass && Warriors < MaxWarriors)
 	{
@@ -97,6 +80,7 @@ void AEnemySpawner::TrySpawn()
 		GetWorld()->SpawnActor<AMinionWarrior>(WarriorClass, SpawnTransform, Params);
 		bSpawned = true;
 		TotalSpawnCount++;
+		LiveWarriorCount++;
 	}
 
 	// Try to spawn a mage if under the limit and ratio allows (1 mage per 2 warriors)
@@ -106,6 +90,7 @@ void AEnemySpawner::TrySpawn()
 		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 		GetWorld()->SpawnActor<AMinionMage>(MageClass, SpawnTransform, Params);
 		bSpawned = true;
+		LiveMageCount++;
 	}
 
 	if (bSpawned && SpawnSound)

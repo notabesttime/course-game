@@ -2,6 +2,7 @@
 
 #include "MinionBrute.h"
 #include "MinionBruteAIController.h"
+#include "EnemySpawner.h"
 #include "PlayerCharacter.h"
 #include "PlayerShieldComponent.h"
 #include "BaseAttributeSet.h"
@@ -42,6 +43,8 @@ void AMinionBrute::BeginPlay()
 	}
 
 	GetMesh()->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
+
+	CachedPlayer = Cast<APlayerCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
 
 	if (GetMesh()->GetSkeletalMeshAsset())
 	{
@@ -114,10 +117,11 @@ void AMinionBrute::SetAnimState(EBruteAnimState NewState)
 
 void AMinionBrute::OnDied()
 {
-	APlayerCharacter* Player = Cast<APlayerCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
-	if (Player)
+	AEnemySpawner::LiveBruteCount = FMath::Max(0, AEnemySpawner::LiveBruteCount - 1);
+
+	if (CachedPlayer)
 	{
-		if (UPlayerShieldComponent* Shield = Player->GetShieldComponent())
+		if (UPlayerShieldComponent* Shield = CachedPlayer->GetShieldComponent())
 		{
 			Shield->ActivateShield(3.f);
 		}
@@ -126,19 +130,15 @@ void AMinionBrute::OnDied()
 
 void AMinionBrute::TryAttackPlayer()
 {
-	if (bAttackOnCooldown)
+	if (bAttackOnCooldown || !CachedPlayer)
 	{
 		return;
 	}
 
-	APlayerCharacter* Player = Cast<APlayerCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
-	if (!Player || !IsValid(Player))
-	{
-		return;
-	}
+	APlayerCharacter* Player = CachedPlayer;
 
-	float DistToPlayer = FVector::Dist(GetActorLocation(), Player->GetActorLocation());
-	if (DistToPlayer > AttackRange)
+	float DistSq = FVector::DistSquared(GetActorLocation(), Player->GetActorLocation());
+	if (DistSq > AttackRange * AttackRange)
 	{
 		return;
 	}

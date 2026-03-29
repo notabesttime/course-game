@@ -44,6 +44,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Warrior|Sounds")
 	USoundBase* AttackSound;
 
+	virtual void OnDied() override;
+
 	// Damage dealt to player per attack
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Warrior|Combat")
 	float AttackDamage = 5.f;
@@ -65,4 +67,7 @@ private:
 
 	bool bAttackOnCooldown = false;
 	FTimerHandle AttackCooldownTimer;
+
+	UPROPERTY()
+	class APlayerCharacter* CachedPlayer = nullptr;
 };

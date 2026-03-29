@@ -26,6 +26,8 @@ APlayerCharacter::APlayerCharacter()
 	PrimaryActorTick.bCanEverTick = true;
 	CameraOcclusionComponent = CreateDefaultSubobject<UCameraOcclusionComponent>(TEXT("CameraOcclusionComponent"));
 	ShieldComponent = CreateDefaultSubobject<UPlayerShieldComponent>(TEXT("ShieldComponent"));
+
+	HoverObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECC_Pawn));
 }
 
 void APlayerCharacter::BeginPlay()
@@ -84,14 +86,17 @@ void APlayerCharacter::Tick(float DeltaTime)
 
 void APlayerCharacter::UpdateHoveredEnemy()
 {
+	// Throttle to 20Hz — hover detection doesn't need sub-frame precision
+	const float Now = GetWorld()->GetTimeSeconds();
+	if (Now - LastHoverUpdateTime < 0.05f) return;
+	LastHoverUpdateTime = Now;
+
 	ABaseEnemy* NewHovered = nullptr;
 
 	if (APlayerController* PC = Cast<APlayerController>(GetController()))
 	{
 		FHitResult HitResult;
-		TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
-		ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECC_Pawn));
-		if (PC->GetHitResultUnderCursorForObjects(ObjectTypes, false, HitResult))
+		if (PC->GetHitResultUnderCursorForObjects(HoverObjectTypes, false, HitResult))
 		{
 			NewHovered = Cast<ABaseEnemy>(HitResult.GetActor());
 		}

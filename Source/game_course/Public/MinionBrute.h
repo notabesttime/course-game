@@ -67,4 +67,7 @@ private:
 
 	bool bAttackOnCooldown = false;
 	FTimerHandle AttackCooldownTimer;
+
+	UPROPERTY()
+	class APlayerCharacter* CachedPlayer = nullptr;
 };

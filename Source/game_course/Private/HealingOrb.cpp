@@ -47,9 +47,9 @@ void AHealingOrb::Tick(float DeltaTime)
 	}
 
 	FVector ToPlayer = CachedPlayer->GetActorLocation() - GetActorLocation();
-	float Dist = ToPlayer.Size();
+	float DistSq = ToPlayer.SizeSquared();
 
-	if (Dist <= PickupRadius)
+	if (DistSq <= PickupRadius * PickupRadius)
 	{
 		if (IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(CachedPlayer))
 		{
@@ -71,5 +71,6 @@ void AHealingOrb::Tick(float DeltaTime)
 		return;
 	}
 
-	AddActorWorldOffset(ToPlayer.GetSafeNormal() * MoveSpeed * DeltaTime);
+	// One sqrt for movement direction (unavoidable), reusing DistSq already computed
+	AddActorWorldOffset(ToPlayer * (MoveSpeed * DeltaTime / FMath::Sqrt(DistSq)));
 }

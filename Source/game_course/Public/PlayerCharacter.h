@@ -91,7 +91,10 @@ private:
 	void OnHealthChanged(float NewValue, float OldValue, float MaxValue);
 
 	float LastAttackTime = -10.f;
+	float LastHoverUpdateTime = -1.f;
 	bool bTimeSlowActive = false;
+
+	TArray<TEnumAsByte<EObjectTypeQuery>> HoverObjectTypes;
 
 	FGameplayAbilitySpecHandle MeleeAbilityHandle;
 	FGameplayAbilitySpecHandle RangedAbilityHandle;

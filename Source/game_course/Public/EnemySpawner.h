@@ -62,12 +62,14 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawner")
 	float SpawnInterval = 3.0f;
 
+public:
+	// Live enemy counts — incremented on spawn, decremented in each minion's OnDied()
+	static int32 LiveWarriorCount;
+	static int32 LiveMageCount;
+	static int32 LiveBruteCount;
+
 private:
 	void TrySpawn();
-
-	int32 CountWarriors() const;
-	int32 CountMages() const;
-	int32 CountBrutes() const;
 
 	FTimerHandle SpawnTimerHandle;
 	static int32 TotalSpawnCount;
