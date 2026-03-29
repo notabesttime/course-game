@@ -79,6 +79,7 @@ DerivedDataCache/*
 *.code-workspace
 
 # Third-party Fab assets — re-download from Fab when needed
+Content/Advanced_Auto_Material/
 Content/ParagonBoris/
 Content/ParagonGideon/
 Content/ParagonKhaimera/
