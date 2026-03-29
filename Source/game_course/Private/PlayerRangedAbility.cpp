@@ -34,7 +34,6 @@ void UPlayerRangedAbility::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 		if (ABaseEnemy* Target = PlayerChar->GetHoveredEnemy())
 		{
 			FVector ToTarget = Target->GetActorLocation() - AvatarActor->GetActorLocation();
-			ToTarget.Z = 0.f;
 			FireDirection = ToTarget.GetSafeNormal();
 		}
 		else if (APlayerController* PC = Cast<APlayerController>(PlayerChar->GetController()))

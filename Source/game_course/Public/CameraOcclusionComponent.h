@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "Materials/MaterialParameterCollection.h"
 #include "CameraOcclusionComponent.generated.h"
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
@@ -17,19 +18,23 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
 		FActorComponentTickFunction* ThisTickFunction) override;
 
-	// Opacity applied to occluding meshes (0 = invisible, 1 = fully opaque)
+	// Assign MPC_Occlusion here in the Blueprint defaults
+	UPROPERTY(EditAnywhere, Category = "Occlusion")
+	UMaterialParameterCollection* OcclusionMPC;
+
+	// Name of the scalar parameter in the MPC
+	UPROPERTY(EditAnywhere, Category = "Occlusion")
+	FName OpacityParamName = FName("FadeOpacity");
+
+	// Opacity applied while occluding (0=invisible, 1=opaque)
 	UPROPERTY(EditAnywhere, Category = "Occlusion")
 	float OccludedOpacity = 0.2f;
 
-	// Speed at which opacity fades in/out
+	// Fade speed
 	UPROPERTY(EditAnywhere, Category = "Occlusion")
 	float FadeSpeed = 8.f;
 
-	// Name of the scalar material parameter to drive
-	UPROPERTY(EditAnywhere, Category = "Occlusion")
-	FName OpacityParamName = FName("Opacity");
-
 private:
-	// Meshes currently being faded, with their current opacity
-	TMap<TWeakObjectPtr<UPrimitiveComponent>, float> FadedMeshes;
+	float CurrentOpacity = 1.f;
+	bool bWasOccluded = false;
 };
