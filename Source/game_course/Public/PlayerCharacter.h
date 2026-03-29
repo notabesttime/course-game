@@ -32,6 +32,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	class UCameraOcclusionComponent* CameraOcclusionComponent;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Shield")
+	class UPlayerShieldComponent* ShieldComponent;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	class UInputAction* MeleeInputAction;
 
@@ -46,6 +49,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	class UInputAction* RestartInputAction;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	class UInputAction* DebugShieldInputAction;
 
 	// Set these in BP_PlayerCharacter Class Defaults to the Blueprint ability subclasses
 	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
@@ -65,6 +71,7 @@ protected:
 
 public:
 	float GetLastAttackTime() const { return LastAttackTime; }
+	UPlayerShieldComponent* GetShieldComponent() const { return ShieldComponent; }
 
 private:
 	void ActivateMelee();
@@ -73,6 +80,7 @@ private:
 	void UpdateHoveredEnemy();
 	void DebugDie();
 	void QuickRestart();
+	void DebugActivateShield();
 
 	UFUNCTION()
 	void OnHealthChanged(float NewValue, float OldValue, float MaxValue);

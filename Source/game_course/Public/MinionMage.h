@@ -78,6 +78,8 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Mage|Healing")
 	void OnHealCast(AActor* HealedTarget);
 
+	virtual void OnDied() override;
+
 private:
 	void UpdateAnimations();
 	void SetAnimState(EMageAnimState NewState);

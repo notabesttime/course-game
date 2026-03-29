@@ -15,6 +15,7 @@
 #include "HealthComponent.h"
 #include "ManaComponent.h"
 #include "CameraOcclusionComponent.h"
+#include "PlayerShieldComponent.h"
 #include "BaseAttributeSet.h"
 #include "Kismet/GameplayStatics.h"
 #include "CourseGameMode.h"
@@ -23,6 +24,7 @@ APlayerCharacter::APlayerCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	CameraOcclusionComponent = CreateDefaultSubobject<UCameraOcclusionComponent>(TEXT("CameraOcclusionComponent"));
+	ShieldComponent = CreateDefaultSubobject<UPlayerShieldComponent>(TEXT("ShieldComponent"));
 }
 
 void APlayerCharacter::BeginPlay()
@@ -119,6 +121,10 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		{
 			EIC->BindAction(RestartInputAction, ETriggerEvent::Started, this, &APlayerCharacter::QuickRestart);
 		}
+		if (DebugShieldInputAction)
+		{
+			EIC->BindAction(DebugShieldInputAction, ETriggerEvent::Started, this, &APlayerCharacter::DebugActivateShield);
+		}
 	}
 }
 
@@ -208,8 +214,33 @@ void APlayerCharacter::QuickRestart()
 	UGameplayStatics::OpenLevel(GetWorld(), FName(*GetWorld()->GetMapName()));
 }
 
+void APlayerCharacter::DebugActivateShield()
+{
+	UE_LOG(LogTemp, Warning, TEXT("DebugActivateShield called"));
+	if (ShieldComponent)
+	{
+		ShieldComponent->ActivateShield(60.f);
+		UE_LOG(LogTemp, Warning, TEXT("Shield activated"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ShieldComponent is null"));
+	}
+}
+
 void APlayerCharacter::OnHealthChanged(float NewValue, float OldValue, float MaxValue)
 {
+	// Shield blocks all damage — restore health back to pre-hit value
+	if (ShieldComponent && ShieldComponent->IsShieldActive() && NewValue < OldValue)
+	{
+		if (AbilitySystemComponent && AttributeSet)
+		{
+			AbilitySystemComponent->SetNumericAttributeBase(
+				UBaseAttributeSet::GetHealthAttribute(), OldValue);
+		}
+		return;
+	}
+
 	if (NewValue <= 0.0f)
 	{
 		if (DeathSound)

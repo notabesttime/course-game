@@ -49,4 +49,6 @@ private:
 
 	UFUNCTION()
 	void OnHealthChanged(float NewValue, float OldValue, float MaxValue);
+
+	virtual void OnDied() {}
 };

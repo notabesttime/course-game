@@ -12,7 +12,8 @@
       "Bash(py --version)",
       "Bash(py -c \"from PIL import Image, ImageDraw, ImageDraw; print\\(''Pillow OK''\\)\")",
       "Bash(py -m pip install Pillow --quiet)",
-      "Bash(py -c \"from PIL import Image; print\\(''OK''\\)\")"
+      "Bash(py -c \"from PIL import Image; print\\(''OK''\\)\")",
+      "Bash(find 'c:/Users/stani/Documents/Unreal Projects/course-game' -maxdepth 2 -name *.bat -o -name *.ps1 -o -name *.sh)"
     ]
   }
 }

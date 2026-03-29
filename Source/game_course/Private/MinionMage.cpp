@@ -4,6 +4,7 @@
 #include "MinionMageAIController.h"
 #include "MinionMageProjectile.h"
 #include "PlayerCharacter.h"
+#include "PlayerShieldComponent.h"
 #include "BaseEnemy.h"
 #include "BaseAttributeSet.h"
 #include "AbilitySystemComponent.h"
@@ -161,6 +162,19 @@ void AMinionMage::TryAttackPlayer()
 		AttackCooldown + Jitter,
 		false
 	);
+}
+
+void AMinionMage::OnDied()
+{
+	APlayerCharacter* Player = Cast<APlayerCharacter>(
+		UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
+	if (Player)
+	{
+		if (UPlayerShieldComponent* Shield = Player->GetShieldComponent())
+		{
+			Shield->ActivateShield();
+		}
+	}
 }
 
 void AMinionMage::TryHealAlly()

@@ -2,8 +2,11 @@
 
 #include "GameTimerWidget.h"
 #include "WaveAnnouncementWidget.h"
+#include "PlayerCharacter.h"
+#include "PlayerShieldComponent.h"
 #include "Components/TextBlock.h"
 #include "Blueprint/UserWidget.h"
+#include "Kismet/GameplayStatics.h"
 
 void UGameTimerWidget::NativeConstruct()
 {
@@ -14,6 +17,17 @@ void UGameTimerWidget::NativeConstruct()
 		TimerText->SetColorAndOpacity(FSlateColor(FLinearColor::White));
 		TimerText->SetRenderScale(FVector2D(1.f, 1.f));
 	}
+
+	// ShieldLabel is bound via BindWidgetOptional — configure it if present
+	if (ShieldLabel)
+	{
+		FSlateFontInfo Font = ShieldLabel->GetFont();
+		Font.Size = 18;
+		ShieldLabel->SetFont(Font);
+		ShieldLabel->SetColorAndOpacity(FSlateColor(FLinearColor(1.f, 0.5f, 0.f, 1.f)));
+		ShieldLabel->SetJustification(ETextJustify::Center);
+		ShieldLabel->SetVisibility(ESlateVisibility::Collapsed);
+	}
 }
 
 void UGameTimerWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
@@ -21,6 +35,27 @@ void UGameTimerWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime
 	Super::NativeTick(MyGeometry, InDeltaTime);
 
 	if (!bStopped) ElapsedTime += InDeltaTime;
+
+	// Shield label
+	if (ShieldLabel)
+	{
+		APlayerCharacter* Player = Cast<APlayerCharacter>(
+			UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
+		UPlayerShieldComponent* Shield = Player
+			? Player->GetShieldComponent() : nullptr;
+
+		if (Shield && Shield->IsShieldActive())
+		{
+			float Remaining = Shield->GetShieldTimeRemaining();
+			ShieldLabel->SetText(FText::FromString(
+				FString::Printf(TEXT("Shield: %.1fs"), Remaining)));
+			ShieldLabel->SetVisibility(ESlateVisibility::HitTestInvisible);
+		}
+		else
+		{
+			ShieldLabel->SetVisibility(ESlateVisibility::Collapsed);
+		}
+	}
 
 	if (ActiveAnnouncement && ActiveAnnouncement->IsAnimating())
 	{

@@ -46,4 +46,7 @@ private:
 
 	UPROPERTY()
 	class UWaveAnnouncementWidget* ActiveAnnouncement = nullptr;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	class UTextBlock* ShieldLabel = nullptr;
 };
