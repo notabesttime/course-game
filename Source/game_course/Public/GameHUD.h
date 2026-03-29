@@ -42,6 +42,7 @@ public:
 
 private:
 	void BindPlayerHealth();
+	void SetupGlassSphereHealth();
 	void UpdateSpawnerIndicators();
 	FVector2D ClampToScreenEdge(FVector2D Dir, FVector2D Center, float EffectiveMargin) const;
 
@@ -53,6 +54,9 @@ private:
 
 	UPROPERTY()
 	class UGameTimerWidget* TimerWidget;
+
+	UPROPERTY()
+	class UGlassSphereHealthWidget* GlassSphereHealth;
 
 	UPROPERTY()
 	TMap<class AEnemySpawner*, class USpawnerIndicatorWidget*> SpawnerIndicators;

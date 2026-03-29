@@ -4,6 +4,7 @@
 #include "HealthBarWidget.h"
 #include "GameTimerWidget.h"
 #include "SpawnerIndicatorWidget.h"
+#include "GlassSphereHealthWidget.h"
 #include "EnemySpawner.h"
 #include "BaseCharacter.h"
 #include "HealthComponent.h"
@@ -43,6 +44,7 @@ void AGameHUD::BeginPlay()
 
 	// Defer one tick so the player character's BeginPlay (and BindToASC) completes first
 	GetWorldTimerManager().SetTimerForNextTick(this, &AGameHUD::BindPlayerHealth);
+	GetWorldTimerManager().SetTimerForNextTick(this, &AGameHUD::SetupGlassSphereHealth);
 }
 
 void AGameHUD::Tick(float DeltaTime)
@@ -64,6 +66,35 @@ void AGameHUD::BindPlayerHealth()
 		if (UHealthComponent* HealthComp = PlayerPawn->FindComponentByClass<UHealthComponent>())
 		{
 			HealthBarWidget->SetHealthComponent(HealthComp);
+		}
+	}
+}
+
+void AGameHUD::SetupGlassSphereHealth()
+{
+	APlayerController* PC = GetOwningPlayerController();
+	if (!PC) return;
+
+	// Create directly from the C++ class — no Blueprint asset needed
+	GlassSphereHealth = CreateWidget<UGlassSphereHealthWidget>(PC, UGlassSphereHealthWidget::StaticClass());
+	if (!GlassSphereHealth) return;
+
+	GlassSphereHealth->AddToViewport(3);
+
+	// Bottom-left: alignment (0,1) means the widget's bottom-left corner sits at the position
+	GlassSphereHealth->SetAlignmentInViewport(FVector2D(0.f, 1.f));
+
+	int32 ViewW, ViewH;
+	PC->GetViewportSize(ViewW, ViewH);
+	GlassSphereHealth->SetPositionInViewport(FVector2D(20.f, (float)ViewH - 20.f));
+
+	// Bind to player health
+	APawn* PlayerPawn = PC->GetPawn();
+	if (PlayerPawn)
+	{
+		if (UHealthComponent* HealthComp = PlayerPawn->FindComponentByClass<UHealthComponent>())
+		{
+			GlassSphereHealth->SetHealthComponent(HealthComp);
 		}
 	}
 }
