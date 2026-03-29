@@ -1,4 +1,4 @@
-# unreal-course-robotdreams-demo-game
+Demo Game for my Unreal 5 course
 
 ## Required Fab Assets
 
