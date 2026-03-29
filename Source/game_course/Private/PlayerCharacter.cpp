@@ -7,6 +7,8 @@
 #include "AbilitySystemComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "InputActionValue.h"
+#include "GameFramework/Controller.h"
 #include "GameFramework/PlayerController.h"
 #include "Engine/EngineTypes.h"
 #include "HealthComponent.h"
@@ -103,7 +105,34 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		{
 			EIC->BindAction(RangedInputAction, ETriggerEvent::Started, this, &APlayerCharacter::ActivateRanged);
 		}
+		if (MoveInputAction)
+		{
+			EIC->BindAction(MoveInputAction, ETriggerEvent::Triggered, this, &APlayerCharacter::Move);
+		}
 	}
+}
+
+void APlayerCharacter::Move(const FInputActionValue& Value)
+{
+	const FVector2D Axis = Value.Get<FVector2D>();
+	if (Axis.IsNearlyZero()) return;
+
+	// Use camera yaw so WASD aligns with what's on screen regardless of camera angle
+	float CameraYaw = GetControlRotation().Yaw;
+	if (APlayerController* PC = Cast<APlayerController>(GetController()))
+	{
+		FVector CamLoc;
+		FRotator CamRot;
+		PC->GetPlayerViewPoint(CamLoc, CamRot);
+		CameraYaw = CamRot.Yaw;
+	}
+
+	const FRotator YawRotation(0.f, CameraYaw, 0.f);
+	const FVector ForwardDir = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+	const FVector RightDir   = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+
+	AddMovementInput(ForwardDir, Axis.Y);
+	AddMovementInput(RightDir,   Axis.X);
 }
 
 void APlayerCharacter::ActivateMelee()
