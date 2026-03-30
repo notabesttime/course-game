@@ -15,7 +15,7 @@ These assets are excluded from git. Download and install them from Fab before op
 | Paragon: Rampage | `Content/ParagonRampage/` |
 | Ancient Temple Ruins | `Content/AncientTempleRuins/` |
 | Level Prototyping | `Content/LevelPrototyping/` |
-| Characters | `Content/Characters/` |
+| Characters from TopDown template | `Content/Characters/` |
 | Mixed Magic VFX Pack | `Content/Mixed_Magic_VFX_Pack/` |
 | Free Magic VFX | `Content/Free_Magic/` |
 | ARPG Music Pack | `Content/ARPGMusicPack/` |
